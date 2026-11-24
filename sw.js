@@ -1,41 +1,22 @@
 // Service worker : met l'application en cache pour un usage hors ligne.
-const CACHE = "vt-enquete-v5";
-const ASSETS = [
+const CACHE = "vt-enquete-v6";
+const CORE = [
   "./",
   "./index.html",
   "./styles.css",
   "./roles.js",
+  "./scripts_imported.js",
   "./scripts.js",
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./icons/roles/alchemist.jpg",
-  "./icons/roles/cannibal.jpg",
-  "./icons/roles/chambermaid.jpg",
-  "./icons/roles/courtier.jpg",
-  "./icons/roles/devils_advocate.jpg",
-  "./icons/roles/drunk.jpg",
-  "./icons/roles/exorcist.jpg",
-  "./icons/roles/fang_gu.jpg",
-  "./icons/roles/fortune_teller.jpg",
-  "./icons/roles/goblin.jpg",
-  "./icons/roles/lunatic.jpg",
-  "./icons/roles/lycanthrope.jpg",
-  "./icons/roles/mayor.jpg",
-  "./icons/roles/monk.jpg",
-  "./icons/roles/nightwatchman.jpg",
-  "./icons/roles/pacifist.jpg",
-  "./icons/roles/pukka.jpg",
-  "./icons/roles/recluse.jpg",
-  "./icons/roles/sailor.jpg",
-  "./icons/roles/scarlet_woman.jpg",
-  "./icons/roles/seamstress.jpg",
-  "./icons/roles/snake_charmer.jpg",
-  "./icons/roles/tinker.jpg",
-  "./icons/roles/vigormortis.jpg",
-  "./icons/roles/witch.jpg",
 ];
+// Liste des icônes de rôles (réécrite par tools/import_bambi.py).
+// ICONS-START
+const ICONS = ["alchemist", "alhadikhia", "alsaahir", "amnesiac", "artist", "assassin", "balloonist", "banshee", "barber", "baron", "boffin", "boomdandy", "butler", "cannibal", "cerenovus", "chambermaid", "chef", "clockmaker", "courtier", "damsel", "devilsadvocate", "dreamer", "drunk", "empath", "eviltwin", "exorcist", "fanggu", "fearmonger", "fisherman", "flowergirl", "fool", "fortuneteller", "gambler", "general", "goblin", "godfather", "golem", "goon", "gossip", "grandmother", "highpriestess", "huntsman", "imp", "innkeeper", "investigator", "juggler", "king", "klutz", "knight", "leviathan", "librarian", "lilmonsta", "lunatic", "lycanthrope", "marionette", "mastermind", "mathematician", "mayor", "mezepheles", "minstrel", "monk", "moonchild", "mutant", "nightwatchman", "noble", "nodashii", "oracle", "pacifist", "philosopher", "pithag", "pixie", "plaguedoctor", "po", "poisoner", "politician", "preacher", "princess", "professor", "pukka", "puzzlemaster", "ravenkeeper", "recluse", "sage", "sailor", "saint", "savant", "scarletwoman", "seamstress", "shabaloth", "shugenja", "slayer", "snakecharmer", "snitch", "soldier", "spy", "steward", "sweetheart", "tealady", "tinker", "towncrier", "undertaker", "vigormortis", "virgin", "vortox", "washerwoman", "widow", "witch", "wizard", "wraith", "xaan", "zombuul"];
+// ICONS-END
+const ASSETS = [...CORE, ...ICONS.map((id) => `./icons/roles/${id}.jpg`)];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

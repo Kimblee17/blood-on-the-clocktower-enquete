@@ -248,3 +248,5 @@ dialog h3 { font-size: 15px; color: var(--accent); margin: 16px 0 8px; }
 .compo span { font-size: 12px; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+dialog a { color: var(--accent); }

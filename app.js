@@ -64,7 +64,12 @@
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s && Array.isArray(s.profiles) && s.profiles.length) return { ...defaultState(), ...s };
+        if (s && Array.isArray(s.profiles) && s.profiles.length) {
+          // Anciens ids de rôles (« fortune_teller » → « fortuneteller »).
+          const fix = (id) => (id || "").replace(/_/g, "");
+          s.profiles.forEach((p) => { p.excluded = (p.excluded || []).map(fix); p.claim = fix(p.claim); });
+          return { ...defaultState(), ...s };
+        }
       }
     } catch (e) { /* stockage indisponible */ }
     return defaultState();
@@ -156,7 +161,11 @@
   // ---------- Rendu ----------
   function renderScriptSelect() {
     const sel = $("#script-select");
-    sel.innerHTML = SCRIPTS.map((s) => `<option value="${s.id}" ${s.id === SCRIPT.id ? "selected" : ""}>${esc(s.name)}</option>`).join("");
+    const opt = (s) => `<option value="${s.id}" ${s.id === SCRIPT.id ? "selected" : ""}>${esc(s.name)}</option>`;
+    const official = (s) => s.author === "The Pandemonium Institute";
+    sel.innerHTML =
+      `<optgroup label="Éditions de base">${SCRIPTS.filter(official).map(opt).join("")}</optgroup>` +
+      `<optgroup label="Scénarios personnalisés">${SCRIPTS.filter((s) => !official(s)).map(opt).join("")}</optgroup>`;
     document.title = `${SCRIPT.name} · Enquête`;
   }
 
