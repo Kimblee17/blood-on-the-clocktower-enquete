@@ -1,7 +1,7 @@
 // Service worker : met l'application en cache pour un usage hors ligne.
 // La version et la liste des fichiers sont réécrites par tools/publish.py.
 // ASSETS-START
-const CACHE = "enquete-b3bae7c5c4";
+const CACHE = "enquete-872b061d26";
 const ASSETS = [
   "./",
   "./icons/icon-192.png",
@@ -121,6 +121,7 @@ const ASSETS = [
   "./js/actions.js",
   "./js/context.js",
   "./js/dialogs.js",
+  "./js/infos.js",
   "./js/logic.js",
   "./js/main.js",
   "./js/panel.js",
