@@ -61,13 +61,14 @@
     playerCount: 8,
     // Journal : phases N1, J1, N2, J2… (index pair = nuit, impair = jour).
     journal: { phase: 0, last: 0, events: [] },
+    notInPlay: [], // rôles absents de la partie : exclus pour tous les joueurs
     // Conservés d'une partie à l'autre :
     customScripts: [], // scénarios collés en JSON
     archives: [],      // parties archivées : { id, date, name, game }
     compact: false,    // cartes de rôles compactes
   });
   // Ce qui constitue « une partie » (archivée / restaurée d'un bloc).
-  const GAME_KEYS = ["scriptId", "profiles", "current", "globalNotes", "journal", "playerCount"];
+  const GAME_KEYS = ["scriptId", "profiles", "current", "globalNotes", "journal", "playerCount", "notInPlay"];
 
   let state = load();
   useScript(state.scriptId);
@@ -113,6 +114,7 @@
     if (p.team.length && !p.team.includes(role.team)) return false;
     return true;
   }
+  const isOut = (rid) => (state.notInPlay || []).includes(rid);
   // Joueur (autre que p) dont ce rôle est confirmé.
   const takenBy = (rid, p) => (p.explore ? null : players().find((o) => o !== p && confirmedOf(o) === rid));
   // État d'une case joueur × rôle :
@@ -121,6 +123,7 @@
     const conf = confirmedOf(p);
     if (conf === r.id) return "yes";
     if (p.excluded.includes(r.id)) return "no";
+    if (isOut(r.id)) return "auto";
     if (conf || !matches(r, p) || takenBy(r.id, p)) return "auto";
     return "maybe";
   }
@@ -297,7 +300,8 @@
     ].join("");
     const jx = jinxes.filter(([a, b]) => a === r.id || b === r.id).map(([a, b, t]) =>
       `<p class="jinx"><b>Jinx · ${esc(roleById[a === r.id ? b : a].name)}</b> : ${esc(t)}</p>`).join("");
-    const badge = st === "yes" ? "Confirmé" : ex ? "Écarté" : taken ? `Pris : ${esc(taken.name)}` : claimed ? "Annoncé" : "";
+    const out = isOut(r.id);
+    const badge = st === "yes" ? "Confirmé" : out ? "Absent de la partie" : ex ? "Écarté" : taken ? `Pris : ${esc(taken.name)}` : claimed ? "Annoncé" : "";
     return `
       <article class="${cls}" data-role="${r.id}">
         ${icon(r.id, 56)}
@@ -310,8 +314,16 @@
         </div>
         <div class="card-side">
           ${badge ? `<span class="badge">${badge}</span>` : ""}
-          <button type="button" class="x ${ex ? "on" : ""}" data-x="${r.id}" aria-pressed="${ex}"
-            aria-label="${ex ? "Rétablir" : "Écarter"} ${esc(r.name)}" title="${ex ? "Rétablir" : "Écarter"}">${ex ? "↺" : "✗"}</button>
+          <div class="card-btns">
+            <button type="button" class="x ${ex ? "on" : ""}" data-x="${r.id}" aria-pressed="${ex}"
+              aria-label="${ex ? "Rétablir" : "Écarter"} ${esc(r.name)}${p.explore ? "" : ` pour ${esc(p.name)}`}"
+              title="${ex ? "Rétablir" : "Écarter"}${p.explore ? "" : ` pour ${esc(p.name)}`}">${ex ? "↺" : "✗"}</button>
+            <button type="button" class="x out ${out ? "on" : ""}" data-out="${r.id}" aria-pressed="${out}"
+              aria-label="${out ? "Remettre en jeu" : "Absent de la partie"} : ${esc(r.name)}"
+              title="${out ? "Remettre en jeu" : "Absent de la partie : écarter pour tous les joueurs"}">${out ? "↺" : "⊘"}</button>
+          </div>
+          ${r.team === "demon" && ROLE_LIST.filter((d) => d.team === "demon").length > 1
+            ? `<button type="button" class="link small" data-demon="${r.id}" title="Écarter tous les autres Démons pour tous les joueurs">C'est ce Démon</button>` : ""}
         </div>
       </article>`;
   }
@@ -465,7 +477,8 @@
     const teams = TEAMS.map((t) => ({ ...t, roles: ROLE_LIST.filter((r) => r.team === t.id) })).filter((t) => t.roles.length);
     const roles = teams.flatMap((t) => t.roles);
     const head1 = teams.map((t) => `<th colspan="${t.roles.length}" class="team t-${t.id}">${t.label}</th>`).join("");
-    const head2 = roles.map((r) => `<th class="rh t-${r.team}" title="${esc(r.name)} — ${esc(r.ability)}">${icon(r.id, 28)}<span>${esc(r.name)}</span></th>`).join("");
+    const head2 = roles.map((r) => `<th class="rh t-${r.team} ${isOut(r.id) ? "out" : ""}"><button type="button" data-out="${r.id}"
+      title="${esc(r.name)} — ${esc(r.ability)}\n\nToucher : ${isOut(r.id) ? "remettre en jeu" : "absent de la partie (exclu pour tous)"}">${icon(r.id, 28)}<span>${esc(r.name)}</span></button></th>`).join("");
     const rows = ps.map((p) => {
       const cells = roles.map((r) => {
         const s = cellState(p, r);
@@ -760,6 +773,8 @@
   });
 
   $("#grid-view").addEventListener("click", (e) => {
+    const outBtn = e.target.closest("[data-out]");
+    if (outBtn) return toggleOut(outBtn.dataset.out);
     const name = e.target.closest(".pname button[data-id]");
     if (name) return select(name.dataset.id);
     const cell = e.target.closest(".cell");
@@ -777,6 +792,10 @@
   });
 
   $("#roles").addEventListener("click", (e) => {
+    const outBtn = e.target.closest("[data-out]");
+    if (outBtn) return toggleOut(outBtn.dataset.out);
+    const dem = e.target.closest("[data-demon]");
+    if (dem) return demonInPlay(dem.dataset.demon);
     const x = e.target.closest("[data-x]");
     if (x) {
       const p = cur(), id = x.dataset.x, was = p.excluded.includes(id);
@@ -788,6 +807,23 @@
     const card = e.target.closest(".role");
     if (card && state.compact) card.classList.toggle("open");
   });
+  // Rôle absent de la partie : exclu pour tous les joueurs (et rétablissable).
+  function toggleOut(rid) {
+    snapshot();
+    const was = isOut(rid);
+    state.notInPlay = was ? state.notInPlay.filter((x) => x !== rid) : [...(state.notInPlay || []), rid];
+    save(); render();
+    toast(`${roleById[rid].name} ${was ? "remis en jeu" : "absent de la partie (exclu pour tous)"}.`);
+  }
+  // « C'est ce Démon » : tous les autres Démons du scénario deviennent absents.
+  function demonInPlay(rid) {
+    snapshot();
+    const others = ROLE_LIST.filter((r) => r.team === "demon" && r.id !== rid).map((r) => r.id);
+    state.notInPlay = [...new Set([...(state.notInPlay || []).filter((x) => x !== rid), ...others])];
+    save(); render();
+    toast(`Démon : ${roleById[rid].name}. Les ${others.length} autres Démons sont exclus pour tous.`);
+  }
+
   $("#role-search").addEventListener("input", (e) => { search = e.target.value; renderRoles(); });
   $("#compact").addEventListener("change", (e) => { state.compact = e.target.checked; save(); renderRoles(); });
   $("#toggle-filters").addEventListener("click", (e) => {
@@ -859,6 +895,7 @@
     state.profiles = state.profiles.map((p) => ({ ...newProfile(p.name, p.explore), id: p.id }));
     state.globalNotes = ""; gn.value = "";
     state.journal = { phase: 0, last: 0, events: [] };
+    state.notInPlay = [];
     state.current = "explore";
     resetDraft("info");
     save(); render();

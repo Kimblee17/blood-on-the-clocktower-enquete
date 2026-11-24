@@ -515,3 +515,11 @@ dialog textarea { width: 100%; }
   padding: 10px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.5); font-size: 14px;
 }
 .toast button { background: none; border: 0; color: var(--accent); font-weight: 700; padding: 0; }
+
+/* ---------- Rôles absents de la partie ---------- */
+.role .card-btns { display: flex; gap: 6px; }
+.role .x.out:hover { color: var(--accent); border-color: var(--accent); }
+.role [data-demon] { font-size: 12px; white-space: nowrap; }
+.deduce th.rh button { display: block; width: 100%; background: none; border: 0; padding: 0; color: inherit; }
+.deduce th.rh.out { opacity: .35; }
+.deduce th.rh.out span { text-decoration: line-through; }
