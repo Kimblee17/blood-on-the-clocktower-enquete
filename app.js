@@ -5,10 +5,42 @@
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const uid = () => Math.random().toString(36).slice(2, 9);
-  const roleById = Object.fromEntries(ROLES.map((r) => [r.id, r]));
   const wakeLabel = Object.fromEntries(WAKE_OPTIONS.map((o) => [o.id, o.label]));
   const choiceLabel = Object.fromEntries(CHOICE_OPTIONS.map((o) => [o.id, o.label]));
+  const teamLabel = Object.fromEntries(TEAMS.map((t) => [t.id, t.label]));
+  const union = (lists) => [...new Set(lists.flat())];
 
+  // ---------- Scénario ----------
+  // Construit la liste des rôles effectifs du scénario : notes propres au
+  // scénario et comportements dérivés (Alchimiste, Lunatique, Ivrogne…).
+  function buildScript(script) {
+    const ids = script.roles.filter((id) => ROLES[id]);
+    const resolved = {};
+    const resolve = (id, stack = []) => {
+      if (resolved[id]) return resolved[id];
+      const base = ROLES[id];
+      let wake = base.wake || [], choice = base.choice || [], extra = "";
+      if (base.derive) {
+        const sources = ids.filter((x) => x !== id && ROLES[x].team === base.derive && !stack.includes(x));
+        const res = sources.map((x) => resolve(x, [...stack, id]));
+        wake = union(res.map((r) => r.wake));
+        choice = union(res.map((r) => r.choice));
+        if (base.derive !== "townsfolk" && sources.length) extra = `Ici : ${sources.map((x) => ROLES[x].name).join(", ")}.`;
+      }
+      const note = [base.note, extra, script.roleNotes?.[id]].filter(Boolean).join(" ");
+      return (resolved[id] = { id, ...base, wake, choice, note });
+    };
+    return ids.map((id) => resolve(id));
+  }
+
+  let SCRIPT, ROLE_LIST, roleById;
+  function useScript(id) {
+    SCRIPT = SCRIPTS.find((s) => s.id === id) || SCRIPTS[0];
+    ROLE_LIST = buildScript(SCRIPT);
+    roleById = Object.fromEntries(ROLE_LIST.map((r) => [r.id, r]));
+  }
+
+  // ---------- État ----------
   const newProfile = (name, explore = false) => ({
     id: explore ? "explore" : uid(), name, explore,
     wake: [], choice: [], team: [], excluded: [],
@@ -16,6 +48,7 @@
   });
 
   const defaultState = () => ({
+    scriptId: SCRIPTS[0].id,
     profiles: [newProfile("Exploration", true)],
     current: "explore",
     globalNotes: "",
@@ -24,6 +57,7 @@
   });
 
   let state = load();
+  useScript(state.scriptId);
 
   function load() {
     try {
@@ -58,7 +92,17 @@
     if (p.team.length && !p.team.includes(role.team)) return false;
     return true;
   }
-  const possible = (p) => ROLES.filter((r) => matches(r, p) && !p.excluded.includes(r.id));
+  const possible = (p) => ROLE_LIST.filter((r) => matches(r, p) && !p.excluded.includes(r.id));
+
+  // ---------- Icônes ----------
+  const icon = (id, size) => `<img src="icons/roles/${id}.jpg" alt="" loading="lazy" width="${size}" height="${size}" data-initial="${esc((ROLES[id]?.name || "?")[0])}">`;
+  const placeholder = (letter) => "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#f4eee2"/><text x="32" y="42" font-family="Georgia,serif" font-size="30" font-weight="700" text-anchor="middle" fill="#16121c">${letter}</text></svg>`);
+  // Rôle sans icône : on affiche son initiale.
+  document.addEventListener("error", (e) => {
+    const img = e.target;
+    if (img.tagName === "IMG" && img.dataset.initial && !img.src.startsWith("data:")) img.src = placeholder(img.dataset.initial);
+  }, true);
 
   // ---------- Listes déroulantes à choix multiples ----------
   const multis = [];
@@ -110,6 +154,12 @@
   makeMulti($("#f-team"), "Équipe", TEAMS, "team");
 
   // ---------- Rendu ----------
+  function renderScriptSelect() {
+    const sel = $("#script-select");
+    sel.innerHTML = SCRIPTS.map((s) => `<option value="${s.id}" ${s.id === SCRIPT.id ? "selected" : ""}>${esc(s.name)}</option>`).join("");
+    document.title = `${SCRIPT.name} · Enquête`;
+  }
+
   function renderPlayers() {
     const strip = $("#player-strip");
     strip.innerHTML = state.profiles.map((p) => `
@@ -133,7 +183,7 @@
     const badge = claimed ? "Annoncé" : ex ? "Écarté" : "";
     return `
       <button type="button" class="${cls}" data-role="${r.id}" aria-pressed="${ex}">
-        <img src="icons/roles/${r.id}.jpg" alt="" loading="lazy" width="56" height="56">
+        ${icon(r.id, 56)}
         <div>
           <div><span class="name">${esc(r.name)}</span><span class="en">${esc(r.en)}</span></div>
           <p class="ability">${esc(r.ability)}</p>
@@ -147,14 +197,15 @@
   function renderRoles() {
     const p = cur();
     const html = TEAMS.map((t) => {
-      const roles = ROLES.filter((r) => r.team === t.id);
+      const roles = ROLE_LIST.filter((r) => r.team === t.id);
+      if (!roles.length) return "";
       const n = roles.filter((r) => matches(r, p) && !p.excluded.includes(r.id)).length;
       return `<div class="team-block"><h2>${t.label} <small>${n}/${roles.length}</small></h2>
         <div class="grid">${roles.map((r) => roleCard(r, p)).join("")}</div></div>`;
     }).join("");
     const n = possible(p).length;
     $("#roles").innerHTML = html + (state.hideExcluded && n === 0 ? `<p class="empty">Aucun rôle ne correspond. Une info est peut-être fausse (ivresse, poison, Reclus…).</p>` : "");
-    $("#count").innerHTML = `<strong>${n}</strong> / ${ROLES.length} rôles possibles${p.explore ? "" : ` pour <em>${esc(p.name)}</em>`}`;
+    $("#count").innerHTML = `<strong>${n}</strong> / ${ROLE_LIST.length} rôles possibles${p.explore ? "" : ` pour <em>${esc(p.name)}</em>`}`;
     $("#hide-excluded").checked = state.hideExcluded;
   }
 
@@ -178,7 +229,10 @@
       <label class="field">Rôle annoncé
         <select id="p-claim">
           <option value="">— Aucun —</option>
-          ${TEAMS.map((t) => `<optgroup label="${t.label}">${ROLES.filter((r) => r.team === t.id).map((r) => `<option value="${r.id}" ${p.claim === r.id ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}
+          ${TEAMS.map((t) => {
+            const rs = ROLE_LIST.filter((r) => r.team === t.id);
+            return rs.length ? `<optgroup label="${t.label}">${rs.map((r) => `<option value="${r.id}" ${p.claim === r.id ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>` : "";
+          }).join("")}
         </select>
       </label>
       ${warn}
@@ -195,6 +249,12 @@
   }
 
   // ---------- Évènements ----------
+  $("#script-select").addEventListener("change", (e) => {
+    state.scriptId = e.target.value;
+    useScript(state.scriptId);
+    save(); renderScriptSelect(); renderRules(); render();
+  });
+
   $("#player-strip").addEventListener("click", (e) => {
     if (e.target.closest("#add-player")) {
       const n = state.profiles.filter((p) => !p.explore).length + 1;
@@ -260,13 +320,16 @@
 
   let night = "first";
   function renderNight() {
-    const p = cur();
-    const poss = new Set(possible(p).map((r) => r.id));
-    $("#night-list").innerHTML = NIGHT_ORDER[night].map(([id, txt]) => {
-      if (id.startsWith("_")) return `<li><div class="ph">T</div><div><b>Tor</b><span>${esc(txt)}</span></div></li>`;
+    const poss = new Set(possible(cur()).map((r) => r.id));
+    const steps = SCRIPT.nightOrder?.[night] || [];
+    $("#night-list").innerHTML = steps.map(([id, txt]) => {
+      if (typeof id === "object") {
+        return `<li><div class="ph">${esc(id.label[0])}</div><div><b>${esc(id.label)}</b><span>${esc(txt)}</span></div></li>`;
+      }
       const r = roleById[id];
-      return `<li class="${poss.has(id) ? "" : "dim"}"><img src="icons/roles/${id}.jpg" alt=""><div><b>${esc(r.name)}</b><span>${esc(txt)}</span></div></li>`;
-    }).join("");
+      if (!r) return "";
+      return `<li class="${poss.has(id) ? "" : "dim"}">${icon(id, 36)}<div><b>${esc(r.name)}</b><span>${esc(txt)}</span></div></li>`;
+    }).join("") || `<li><div></div><div><span>Ordre de nuit non renseigné pour ce scénario.</span></div></li>`;
   }
   document.querySelectorAll("[data-night]").forEach((t) => t.addEventListener("click", () => {
     night = t.dataset.night;
@@ -275,18 +338,24 @@
   }));
   $("[data-open=night-dialog]").addEventListener("click", renderNight);
 
-  $("#fabled").innerHTML = FABLED.map((f) => `<li><b>${esc(f.name)}</b> — ${esc(f.text)}</li>`).join("");
+  function renderRules() {
+    $("#rules-title").textContent = `Scénario ${SCRIPT.name}${SCRIPT.author ? ` · ${SCRIPT.author}` : ""}`;
+    $("#fabled").innerHTML = (SCRIPT.rules || []).map((f) => `<li><b>${esc(f.name)}</b> — ${esc(f.text)}</li>`).join("") || "<li>Aucune règle particulière.</li>";
+    $("#setup-note").textContent = SCRIPT.setupNote || "";
+  }
   const pc = $("#player-count");
   function renderCompo() {
     const n = Math.min(15, Math.max(5, parseInt(pc.value, 10) || 5));
     const c = COMPOSITION[n];
-    $("#compo").innerHTML = TEAMS.map((t, i) => `<div class="t-${t.id}"><strong>${c[i]}</strong><span>${t.label}</span></div>`).join("");
+    $("#compo").innerHTML = TEAMS.map((t, i) => `<div class="t-${t.id}"><strong>${c[i]}</strong><span>${teamLabel[t.id]}</span></div>`).join("");
     state.playerCount = n; save();
   }
   pc.value = state.playerCount;
   pc.addEventListener("input", renderCompo);
-  renderCompo();
 
+  renderScriptSelect();
+  renderRules();
+  renderCompo();
   render();
 
   // ---------- PWA ----------

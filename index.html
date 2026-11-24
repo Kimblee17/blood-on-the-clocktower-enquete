@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Veiled Threats · Enquête</title>
-  <meta name="description" content="Outil d'enquête pour Blood on the Clocktower — script Veiled Threats.">
+  <title>Carnet d'enquête · BotC</title>
+  <meta name="description" content="Outil d'enquête pour Blood on the Clocktower.">
   <meta name="theme-color" content="#16121c">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
@@ -18,8 +18,10 @@
     <div class="brand">
       <img src="icons/icon-192.png" alt="" width="32" height="32">
       <div>
-        <h1>Veiled Threats</h1>
-        <p>Carnet d'enquête</p>
+        <h1>Carnet d'enquête</h1>
+        <label class="script-pick">Scénario
+          <select id="script-select" aria-label="Scénario"></select>
+        </label>
       </div>
     </div>
     <nav class="top-actions">
@@ -78,17 +80,18 @@
       <h2>Règles &amp; répartition</h2>
       <button class="ghost" aria-label="Fermer">Fermer</button>
     </form>
-    <h3>Fabuleux &amp; règles maison</h3>
+    <h3 id="rules-title">Scénario</h3>
     <ul class="fabled" id="fabled"></ul>
     <h3>Répartition</h3>
     <label class="inline">Nombre de joueurs
       <input type="number" id="player-count" min="5" max="15" value="8">
     </label>
     <div class="compo" id="compo"></div>
-    <p class="hint">Fang Gu : +1 Étranger. Vigormortis : −1 Étranger.</p>
+    <p class="hint" id="setup-note"></p>
   </dialog>
 
-  <script src="data.js"></script>
+  <script src="roles.js"></script>
+  <script src="scripts.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
