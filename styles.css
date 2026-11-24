@@ -521,3 +521,34 @@ dialog textarea { width: 100%; }
 .deduce th.rh button { display: block; width: 100%; background: none; border: 0; padding: 0; color: inherit; }
 .deduce th.rh.out { opacity: .35; }
 .deduce th.rh.out span { text-decoration: line-through; }
+
+/* ---------- Mode discret ---------- */
+.discreet-veil {
+  position: fixed; inset: 0; z-index: 40; border: 0; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: var(--bg); color: var(--muted); font-family: var(--serif);
+}
+.discreet-veil span { font-size: 22px; color: var(--text); }
+.discreet-veil small { font-size: 14px; }
+body.discreet .topbar { z-index: 41; }
+#discreet[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- Table : glisser-déposer ---------- */
+.seat { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.seat.dragging { z-index: 5; transition: none; opacity: .85; }
+.seat.dragging .tok img { outline: 3px dashed var(--accent); outline-offset: 3px; }
+.seat.drop-target .tok img { box-shadow: 0 0 0 4px var(--accent); }
+.center-btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.center-btns .ghost { padding: 5px 10px; font-size: 13px; }
+
+/* ---------- Menu rapide ---------- */
+#quick-dialog { width: min(380px, calc(100vw - 32px)); }
+#quick-body h2 { font-size: 20px; margin-bottom: 10px; }
+.quick-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.quick-row .ghost { flex: 1; padding: 10px; }
+.quick-row .ghost.on { border-color: var(--accent); color: var(--accent); }
+@media (max-width: 600px) {
+  .compo-check { font-size: 11px; table-layout: fixed; }
+  .compo-check th, .compo-check td { padding: 4px 2px; overflow-wrap: anywhere; }
+  .compo-check tbody th { width: 28%; }
+}
