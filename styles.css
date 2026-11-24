@@ -552,3 +552,8 @@ body.discreet .topbar { z-index: 41; }
   .compo-check th, .compo-check td { padding: 4px 2px; overflow-wrap: anywhere; }
   .compo-check tbody th { width: 28%; }
 }
+
+/* ---------- Infos structurées ---------- */
+.deduce .cell.s-ded { color: var(--good); background: rgba(91,155,213,.08); }
+.effect { margin: 10px 0 0; padding: 7px 10px; font-size: 13px; color: var(--muted); border-left: 3px solid var(--good); background: var(--surface); }
+.pk.num { min-width: 40px; text-align: center; }

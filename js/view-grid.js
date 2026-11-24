@@ -4,8 +4,8 @@ import { $, esc, icon } from "./util.js";
 import { select, toggleOut } from "./actions.js";
 
 const L = app.L;
-const CELL = { yes: "✓", no: "✗", auto: "·", maybe: "" };
-const CELL_LABEL = { yes: "confirmé", no: "écarté", auto: "exclu par déduction", maybe: "possible" };
+const CELL = { yes: "✓", no: "✗", ded: "◦", auto: "·", maybe: "" };
+const CELL_LABEL = { yes: "confirmé", no: "écarté", ded: "déduit d'une info", auto: "exclu par déduction", maybe: "possible" };
 
 export function renderGrid() {
   const ps = L.players();
@@ -24,8 +24,9 @@ export function renderGrid() {
   const rows = ps.map((p) => {
     const cells = roles.map((r) => {
       const s = L.cellState(p, r);
-      return `<td><button type="button" class="cell s-${s}" data-p="${p.id}" data-r="${r.id}"
-        aria-label="${esc(p.name)} / ${esc(r.name)} : ${CELL_LABEL[s]}">${CELL[s]}</button></td>`;
+      const why = s === "ded" ? ` (d'après ${L.deducedWhy(p, r.id)})` : "";
+      return `<td><button type="button" class="cell s-${s}" data-p="${p.id}" data-r="${r.id}" title="${esc(r.name)} : ${CELL_LABEL[s]}${esc(why)}"
+        aria-label="${esc(p.name)} / ${esc(r.name)} : ${CELL_LABEL[s]}${esc(why)}">${CELL[s]}</button></td>`;
     }).join("");
     return `<tr class="${p.id === app.state.current ? "active" : ""} ${p.dead ? "dead" : ""}">
       <th class="pname"><button type="button" data-id="${p.id}"><span class="dot a-${p.align || "unknown"}"></span><span class="pn">${esc(p.name || "Sans nom")}</span></button></th>
@@ -44,7 +45,7 @@ export function renderGrid() {
       </table>
     </div>
     <p class="hint">Touchez une case : vide → ✗ écarté → ✓ confirmé → vide. Touchez l'icône d'un rôle pour le déclarer absent de la partie.
-      « · » = exclu par déduction. La ligne « Candidats » compte les joueurs qui peuvent encore avoir ce rôle.</p>`;
+      « ◦ » = déduit d'une info du journal (disparaît si sa source est marquée ivre / empoisonnée). « · » = exclu (filtres, rôle absent ou pris). La ligne « Candidats » compte les joueurs qui peuvent encore avoir ce rôle.</p>`;
 }
 
 export function initGrid() {

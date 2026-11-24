@@ -50,6 +50,7 @@ function renderDiscreet() {
 }
 
 app.render = () => {
+  L.invalidate();
   const nAlerts = L.checks().filter((a) => a.lvl !== "info").length;
   $("[data-view=table]").innerHTML = `Table${nAlerts ? ` <span class="badge-n" title="Alertes">${nAlerts}</span>` : ""}`;
   syncFilters();
@@ -59,7 +60,7 @@ app.render = () => {
   renderDiscreet();
 };
 // Rendu léger (frappe du nom d'un joueur) : sans redessiner la fiche en cours d'édition.
-app.renderLight = () => { renderPlayers(); renderView(); };
+app.renderLight = () => { L.invalidate(); renderPlayers(); renderView(); };
 
 // ---------- Initialisation ----------
 initRoles();
