@@ -176,4 +176,100 @@ const ROLES = {
     ability: "Chaque nuit*, choisis un joueur : il meurt. Les Sbires que tu tues gardent leur capacité et empoisonnent 1 Habitant voisin. [-1 Étranger]",
     wake: ["notfirst"], choice: ["one"],
   },
+
+  // ========== Rôles ajoutés avec Trouble Brewing ==========
+  // ---------- HABITANTS ----------
+  washerwoman: {
+    name: "Lavandière", en: "Washerwoman", team: "townsfolk",
+    ability: "Tu commences en sachant que l'un de 2 joueurs est un Habitant précis.",
+    wake: ["once"], choice: ["none"],
+    note: "Reçoit son info la première nuit uniquement.",
+  },
+  librarian: {
+    name: "Bibliothécaire", en: "Librarian", team: "townsfolk",
+    ability: "Tu commences en sachant que l'un de 2 joueurs est un Étranger précis (ou qu'il n'y a aucun Étranger en jeu).",
+    wake: ["once"], choice: ["none"],
+    note: "Reçoit son info la première nuit uniquement.",
+  },
+  investigator: {
+    name: "Enquêteur", en: "Investigator", team: "townsfolk",
+    ability: "Tu commences en sachant que l'un de 2 joueurs est un Sbire précis.",
+    wake: ["once"], choice: ["none"],
+    note: "Reçoit son info la première nuit uniquement.",
+  },
+  chef: {
+    name: "Cuisinier", en: "Chef", team: "townsfolk",
+    ability: "Tu commences en sachant combien de paires de joueurs mauvais sont assis côte à côte.",
+    wake: ["once"], choice: ["none"],
+    note: "Reçoit son info la première nuit uniquement.",
+  },
+  empath: {
+    name: "Empathe", en: "Empath", team: "townsfolk",
+    ability: "Chaque nuit, tu apprends combien de tes 2 voisins vivants sont mauvais.",
+    wake: ["each"], choice: ["none"],
+  },
+  undertaker: {
+    name: "Croque-mort", en: "Undertaker", team: "townsfolk",
+    ability: "Chaque nuit*, tu apprends quel personnage est mort exécuté aujourd'hui.",
+    wake: ["notfirst"], choice: ["none"],
+    note: "Réveillé seulement si quelqu'un a été exécuté dans la journée.",
+  },
+  ravenkeeper: {
+    name: "Gardien des corbeaux", en: "Ravenkeeper", team: "townsfolk",
+    ability: "Si tu meurs la nuit, tu es réveillé pour choisir un joueur : tu apprends son personnage.",
+    wake: ["once"], choice: ["one"],
+    note: "Ne se réveille que la nuit de sa mort.",
+  },
+  virgin: {
+    name: "Vierge", en: "Virgin", team: "townsfolk",
+    ability: "La première fois que tu es nominée, si le nominateur est un Habitant, il est exécuté immédiatement.",
+    wake: ["none"], choice: ["none"],
+  },
+  slayer: {
+    name: "Pourfendeur", en: "Slayer", team: "townsfolk",
+    ability: "Une fois par partie, de jour, choisis publiquement un joueur : si c'est le Démon, il meurt.",
+    wake: ["none"], choice: ["none"],
+    note: "Capacité de jour : choisit un joueur publiquement, sans réveil la nuit.",
+  },
+  soldier: {
+    name: "Soldat", en: "Soldier", team: "townsfolk",
+    ability: "Tu es protégé du Démon.",
+    wake: ["none"], choice: ["none"],
+  },
+
+  // ---------- ÉTRANGERS ----------
+  butler: {
+    name: "Majordome", en: "Butler", team: "outsider",
+    ability: "Chaque nuit, choisis un joueur (pas toi) : demain, tu ne peux voter que s'il vote aussi.",
+    wake: ["each"], choice: ["one"],
+  },
+  saint: {
+    name: "Saint", en: "Saint", team: "outsider",
+    ability: "Si tu meurs exécuté, ton équipe perd.",
+    wake: ["none"], choice: ["none"],
+  },
+
+  // ---------- SBIRES ----------
+  poisoner: {
+    name: "Empoisonneur", en: "Poisoner", team: "minion",
+    ability: "Chaque nuit, choisis un joueur : il est empoisonné cette nuit et demain.",
+    wake: ["each"], choice: ["one"],
+  },
+  spy: {
+    name: "Espion", en: "Spy", team: "minion",
+    ability: "Chaque nuit, tu vois le Grimoire. Tu peux être perçu comme bon, Habitant ou Étranger, même mort.",
+    wake: ["each"], choice: ["none"],
+  },
+  baron: {
+    name: "Baron", en: "Baron", team: "minion",
+    ability: "Il y a des Étrangers en plus dans la partie. [+2 Étrangers]",
+    wake: ["none"], choice: ["none"],
+  },
+
+  // ---------- DÉMONS ----------
+  imp: {
+    name: "Imp", en: "Imp", team: "demon",
+    ability: "Chaque nuit*, choisis un joueur : il meurt. Si tu te tues ainsi, un Sbire devient l'Imp.",
+    wake: ["notfirst"], choice: ["one"],
+  },
 };
