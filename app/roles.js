@@ -35,6 +35,23 @@ const COMPOSITION = {
   13: [9, 0, 3, 1], 14: [9, 1, 3, 1], 15: [9, 2, 3, 1],
 };
 
+// Étapes de nuit qui ne sont pas des rôles, avec leur numéro d'ordre.
+const NIGHT_SPECIALS = {
+  "first": [
+    {
+      "order": 20,
+      "label": "Info des Sbires",
+      "text": "Les Sbires apprennent qui est le Démon (7+ joueurs)."
+    },
+    {
+      "order": 24,
+      "label": "Info du Démon",
+      "text": "Le Démon apprend ses Sbires et 3 rôles absents (7+ joueurs)."
+    }
+  ]
+};
+
+// night.first / night.other : numéro d'ordre de réveil (feuille de nuit officielle).
 const ROLES = {
   "alchemist": {
     "name": "Alchimiste",
@@ -42,7 +59,11 @@ const ROLES = {
     "team": "townsfolk",
     "ability": "Vous avez la capacité d'un Sbire. Lorsque vous l'utilisez, le Conteur peut vous demander de choisir différemment.",
     "derive": "minion",
-    "note": "Se comporte comme le Sbire copié."
+    "note": "Se comporte comme le Sbire copié.",
+    "nightText": "Apprend son pouvoir de Sbire / l'utilise.",
+    "night": {
+      "first": 15
+    }
   },
   "alhadikhia": {
     "name": "Al-Hadikhia",
@@ -54,7 +75,10 @@ const ROLES = {
     ],
     "choice": [
       "three"
-    ]
+    ],
+    "night": {
+      "other": 51
+    }
   },
   "alsaahir": {
     "name": "Alsaahir",
@@ -86,7 +110,11 @@ const ROLES = {
       "char",
       "none"
     ],
-    "note": "Capacité inconnue : comportement libre."
+    "note": "Capacité inconnue : comportement libre.",
+    "night": {
+      "first": 51,
+      "other": 69
+    }
   },
   "artist": {
     "name": "Artiste",
@@ -111,7 +139,10 @@ const ROLES = {
     "choice": [
       "one"
     ],
-    "note": "Réveillé chaque nuit* jusqu'à ce qu'il utilise sa capacité."
+    "note": "Réveillé chaque nuit* jusqu'à ce qu'il utilise sa capacité.",
+    "night": {
+      "other": 56
+    }
   },
   "balloonist": {
     "name": "Aéronaute",
@@ -123,7 +154,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend un joueur d'un type différent.",
+    "night": {
+      "first": 66,
+      "other": 85
+    }
   },
   "banshee": {
     "name": "Banshee",
@@ -135,7 +171,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "other": 64
+    }
   },
   "barber": {
     "name": "Barbier",
@@ -147,7 +186,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "other": 60
+    }
   },
   "baron": {
     "name": "Baron",
@@ -171,7 +213,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "first": 13
+    }
   },
   "boomdandy": {
     "name": "Boumdandy",
@@ -195,7 +240,12 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "nightText": "Choisit son maître.",
+    "night": {
+      "first": 58,
+      "other": 91
+    }
   },
   "cannibal": {
     "name": "Cannibale",
@@ -228,7 +278,11 @@ const ROLES = {
       "one",
       "char"
     ],
-    "note": "Choisit un joueur et un rôle bon."
+    "note": "Choisit un joueur et un rôle bon.",
+    "night": {
+      "first": 43,
+      "other": 28
+    }
   },
   "chambermaid": {
     "name": "Femme de chambre",
@@ -240,7 +294,11 @@ const ROLES = {
     ],
     "choice": [
       "two"
-    ]
+    ],
+    "night": {
+      "first": 76,
+      "other": 95
+    }
   },
   "chef": {
     "name": "Cuisinier",
@@ -252,7 +310,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend le nombre de paires maléfiques.",
+    "night": {
+      "first": 55
+    }
   },
   "clockmaker": {
     "name": "Horloger",
@@ -264,7 +326,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend la distance Démon / Sbire le plus proche.",
+    "night": {
+      "first": 60
+    }
   },
   "courtier": {
     "name": "Courtisan",
@@ -277,7 +343,12 @@ const ROLES = {
     "choice": [
       "char"
     ],
-    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité."
+    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité.",
+    "nightText": "Peut choisir un personnage.",
+    "night": {
+      "first": 35,
+      "other": 18
+    }
   },
   "damsel": {
     "name": "Demoiselle",
@@ -289,7 +360,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "first": 50,
+      "other": 68
+    }
   },
   "devilsadvocate": {
     "name": "Avocat du Diable",
@@ -301,7 +376,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 40,
+      "other": 26
+    }
   },
   "dreamer": {
     "name": "Rêveur",
@@ -313,7 +392,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 61,
+      "other": 79
+    }
   },
   "drunk": {
     "name": "Ivrogne",
@@ -333,7 +416,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend combien de voisins sont maléfiques.",
+    "night": {
+      "first": 56,
+      "other": 76
+    }
   },
   "eviltwin": {
     "name": "Jumelle Maléfique",
@@ -345,7 +433,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Les jumeaux se découvrent.",
+    "night": {
+      "first": 41
+    }
   },
   "exorcist": {
     "name": "Exorciste",
@@ -357,7 +449,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 36
+    }
   },
   "fanggu": {
     "name": "Fang Gu",
@@ -369,7 +464,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 45
+    }
   },
   "fearmonger": {
     "name": "Tourmenteur",
@@ -381,7 +479,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 44,
+      "other": 30
+    }
   },
   "fisherman": {
     "name": "Pêcheur",
@@ -405,7 +507,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend si un Démon a voté.",
+    "night": {
+      "other": 80
+    }
   },
   "fool": {
     "name": "Fou du roi",
@@ -429,7 +535,11 @@ const ROLES = {
     ],
     "choice": [
       "two"
-    ]
+    ],
+    "night": {
+      "first": 57,
+      "other": 77
+    }
   },
   "gambler": {
     "name": "Parieur",
@@ -443,7 +553,10 @@ const ROLES = {
       "one",
       "char"
     ],
-    "note": "Choisit un joueur et devine son rôle."
+    "note": "Choisit un joueur et devine son rôle.",
+    "night": {
+      "other": 21
+    }
   },
   "general": {
     "name": "Général",
@@ -455,7 +568,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend quelle équipe gagne.",
+    "night": {
+      "first": 75,
+      "other": 94
+    }
   },
   "goblin": {
     "name": "Gobelin",
@@ -482,7 +600,12 @@ const ROLES = {
       "none",
       "one"
     ],
-    "note": "Info la 1re nuit, puis choisit une victime si un Marginal est mort dans la journée."
+    "note": "Info la 1re nuit, puis choisit une victime si un Marginal est mort dans la journée.",
+    "nightText": "1re nuit : apprend les Marginaux. Ensuite : peut tuer.",
+    "night": {
+      "first": 38,
+      "other": 57
+    }
   },
   "golem": {
     "name": "Golem",
@@ -518,7 +641,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "other": 58
+    }
   },
   "grandmother": {
     "name": "Grand-mère",
@@ -530,7 +656,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend un joueur bon et son rôle.",
+    "night": {
+      "first": 59,
+      "other": 73
+    }
   },
   "highpriestess": {
     "name": "Grande Prêtresse",
@@ -542,7 +673,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend à qui parler.",
+    "night": {
+      "first": 74,
+      "other": 93
+    }
   },
   "huntsman": {
     "name": "Chasseur",
@@ -555,7 +691,11 @@ const ROLES = {
     "choice": [
       "one"
     ],
-    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité."
+    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité.",
+    "night": {
+      "first": 49,
+      "other": 67
+    }
   },
   "imp": {
     "name": "Diablotin",
@@ -567,7 +707,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 40
+    }
   },
   "innkeeper": {
     "name": "Aubergiste",
@@ -579,7 +722,10 @@ const ROLES = {
     ],
     "choice": [
       "two"
-    ]
+    ],
+    "night": {
+      "other": 19
+    }
   },
   "investigator": {
     "name": "Détective",
@@ -591,7 +737,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend qu'un de 2 joueurs est un Sbire précis.",
+    "night": {
+      "first": 54
+    }
   },
   "juggler": {
     "name": "Jongleur",
@@ -604,7 +754,11 @@ const ROLES = {
     "choice": [
       "none"
     ],
-    "note": "Devine de jour ; apprend le résultat la nuit suivante."
+    "note": "Devine de jour ; apprend le résultat la nuit suivante.",
+    "nightText": "Apprend combien de ses suppositions étaient justes.",
+    "night": {
+      "other": 84
+    }
   },
   "king": {
     "name": "Roi",
@@ -618,7 +772,12 @@ const ROLES = {
     "choice": [
       "none"
     ],
-    "note": "Réveillé seulement quand il y a autant de morts que de vivants."
+    "note": "Réveillé seulement quand il y a autant de morts que de vivants.",
+    "nightText": "Si autant de morts que de vivants, apprend un rôle en vie.",
+    "night": {
+      "first": 25,
+      "other": 87
+    }
   },
   "klutz": {
     "name": "Maladroit",
@@ -642,7 +801,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend 2 joueurs qui ne sont pas le Démon.",
+    "night": {
+      "first": 64
+    }
   },
   "leviathan": {
     "name": "Léviathan",
@@ -654,7 +817,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "first": 79,
+      "other": 99
+    }
   },
   "librarian": {
     "name": "Archiviste",
@@ -666,7 +833,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend qu'un de 2 joueurs est un Marginal précis.",
+    "night": {
+      "first": 53
+    }
   },
   "lilmonsta": {
     "name": "Timonstre",
@@ -679,7 +850,11 @@ const ROLES = {
     "choice": [
       "none"
     ],
-    "note": "Les Sbires se réveillent pour désigner le gardien."
+    "note": "Les Sbires se réveillent pour désigner le gardien.",
+    "night": {
+      "first": 30,
+      "other": 53
+    }
   },
   "lunatic": {
     "name": "Lunatique",
@@ -687,7 +862,12 @@ const ROLES = {
     "team": "outsider",
     "ability": "Vous pensez que vous êtes un Démon. Le Démon sait qui vous êtes et qui vous choisissez la nuit.",
     "derive": "demon",
-    "note": "Se comporte comme le Démon qu'il croit être."
+    "note": "Se comporte comme le Démon qu'il croit être.",
+    "nightText": "Agit comme le Démon qu'il croit être.",
+    "night": {
+      "first": 22,
+      "other": 35
+    }
   },
   "lycanthrope": {
     "name": "Lycanthrope",
@@ -699,7 +879,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 37
+    }
   },
   "marionette": {
     "name": "Marionnette",
@@ -707,7 +890,10 @@ const ROLES = {
     "team": "minion",
     "ability": "Vous pensez que vous êtes un rôle bon. Le Démon sait qui vous êtes. [Vous êtes voisin du Démon]",
     "derive": "townsfolk",
-    "note": "Croit être un rôle bon et se comporte comme lui."
+    "note": "Croit être un rôle bon et se comporte comme lui.",
+    "night": {
+      "first": 27
+    }
   },
   "mastermind": {
     "name": "Conspirateur",
@@ -731,7 +917,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend combien de capacités ont dysfonctionné.",
+    "night": {
+      "first": 77,
+      "other": 96
+    }
   },
   "mayor": {
     "name": "Maire",
@@ -755,7 +946,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend son mot secret.",
+    "night": {
+      "first": 46,
+      "other": 32
+    }
   },
   "minstrel": {
     "name": "Menestrel",
@@ -779,7 +975,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 24
+    }
   },
   "moonchild": {
     "name": "Sélénite",
@@ -791,7 +990,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "other": 72
+    }
   },
   "mutant": {
     "name": "Bête de foire",
@@ -816,7 +1018,12 @@ const ROLES = {
     "choice": [
       "one"
     ],
-    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité."
+    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité.",
+    "nightText": "Peut choisir un joueur.",
+    "night": {
+      "first": 70,
+      "other": 89
+    }
   },
   "noble": {
     "name": "Noble",
@@ -828,7 +1035,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend 3 joueurs dont 1 seul maléfique.",
+    "night": {
+      "first": 65
+    }
   },
   "nodashii": {
     "name": "No Dashii",
@@ -840,7 +1051,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 46
+    }
   },
   "oracle": {
     "name": "Oracle",
@@ -852,7 +1066,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend combien de morts sont maléfiques.",
+    "night": {
+      "other": 82
+    }
   },
   "pacifist": {
     "name": "Pacifiste",
@@ -877,7 +1095,12 @@ const ROLES = {
     "choice": [
       "char"
     ],
-    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité."
+    "note": "Réveillé chaque nuit jusqu'à ce qu'il utilise sa capacité.",
+    "nightText": "Peut choisir un rôle bon.",
+    "night": {
+      "first": 14,
+      "other": 11
+    }
   },
   "pithag": {
     "name": "Guenaude",
@@ -891,7 +1114,10 @@ const ROLES = {
       "one",
       "char"
     ],
-    "note": "Choisit un joueur et un rôle."
+    "note": "Choisit un joueur et un rôle.",
+    "night": {
+      "other": 29
+    }
   },
   "pixie": {
     "name": "Pixie",
@@ -903,7 +1129,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend un Villageois en jeu.",
+    "night": {
+      "first": 48
+    }
   },
   "plaguedoctor": {
     "name": "Docteur De Peste",
@@ -915,7 +1145,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "other": 62
+    }
   },
   "po": {
     "name": "Po",
@@ -930,7 +1163,10 @@ const ROLES = {
       "three",
       "none"
     ],
-    "note": "Peut choisir personne, puis 3 joueurs la nuit suivante."
+    "note": "Peut choisir personne, puis 3 joueurs la nuit suivante.",
+    "night": {
+      "other": 44
+    }
   },
   "poisoner": {
     "name": "Empoisonneur",
@@ -942,7 +1178,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 33,
+      "other": 17
+    }
   },
   "politician": {
     "name": "Politicien",
@@ -966,7 +1206,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 29,
+      "other": 15
+    }
   },
   "princess": {
     "name": "Princesse",
@@ -978,7 +1222,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "other": 38
+    }
   },
   "professor": {
     "name": "Professeur",
@@ -991,7 +1238,10 @@ const ROLES = {
     "choice": [
       "one"
     ],
-    "note": "Réveillé chaque nuit* jusqu'à ce qu'il utilise sa capacité."
+    "note": "Réveillé chaque nuit* jusqu'à ce qu'il utilise sa capacité.",
+    "night": {
+      "other": 65
+    }
   },
   "pukka": {
     "name": "Pukka",
@@ -1003,7 +1253,12 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "nightText": "Choisit un joueur ; l'empoisonné précédent meurt.",
+    "night": {
+      "first": 47,
+      "other": 42
+    }
   },
   "puzzlemaster": {
     "name": "Maître Des Puzzles",
@@ -1028,7 +1283,11 @@ const ROLES = {
     "choice": [
       "one"
     ],
-    "note": "Ne se réveille que la nuit de sa mort."
+    "note": "Ne se réveille que la nuit de sa mort.",
+    "nightText": "Si mort cette nuit, choisit un joueur et apprend son rôle.",
+    "night": {
+      "other": 75
+    }
   },
   "recluse": {
     "name": "Recluse",
@@ -1053,7 +1312,11 @@ const ROLES = {
     "choice": [
       "none"
     ],
-    "note": "Ne se réveille que la nuit où le Démon le tue."
+    "note": "Ne se réveille que la nuit où le Démon le tue.",
+    "nightText": "Si tué par le Démon, apprend 2 joueurs dont le Démon.",
+    "night": {
+      "other": 63
+    }
   },
   "sailor": {
     "name": "Marin",
@@ -1065,7 +1328,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 26,
+      "other": 13
+    }
   },
   "saint": {
     "name": "Saint",
@@ -1104,7 +1371,11 @@ const ROLES = {
       "none",
       "one"
     ],
-    "note": "Ne se réveille que si elle devient le Démon, puis agit comme lui."
+    "note": "Ne se réveille que si elle devient le Démon, puis agit comme lui.",
+    "nightText": "Apprend qu'elle est devenue le Démon.",
+    "night": {
+      "other": 33
+    }
   },
   "seamstress": {
     "name": "Couturière",
@@ -1117,7 +1388,12 @@ const ROLES = {
     "choice": [
       "two"
     ],
-    "note": "Réveillée chaque nuit jusqu'à ce qu'elle utilise sa capacité."
+    "note": "Réveillée chaque nuit jusqu'à ce qu'elle utilise sa capacité.",
+    "nightText": "Peut choisir 2 joueurs.",
+    "night": {
+      "first": 62,
+      "other": 83
+    }
   },
   "shabaloth": {
     "name": "Shabaloth",
@@ -1129,7 +1405,10 @@ const ROLES = {
     ],
     "choice": [
       "two"
-    ]
+    ],
+    "night": {
+      "other": 43
+    }
   },
   "shugenja": {
     "name": "Shugenja",
@@ -1141,7 +1420,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend de quel côté est le joueur maléfique le plus proche.",
+    "night": {
+      "first": 67
+    }
   },
   "slayer": {
     "name": "Pourfendeuse",
@@ -1166,7 +1449,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 37,
+      "other": 23
+    }
   },
   "snitch": {
     "name": "Balance",
@@ -1178,7 +1465,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "first": 21
+    }
   },
   "soldier": {
     "name": "Soldat",
@@ -1202,7 +1492,12 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Regarde le Grimoire.",
+    "night": {
+      "first": 72,
+      "other": 92
+    }
   },
   "steward": {
     "name": "Intendante",
@@ -1214,7 +1509,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend 1 joueur bon.",
+    "night": {
+      "first": 63
+    }
   },
   "sweetheart": {
     "name": "Dulcinée",
@@ -1226,7 +1525,10 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "other": 61
+    }
   },
   "tealady": {
     "name": "Tisanière",
@@ -1250,7 +1552,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Peut mourir (sans réveil).",
+    "night": {
+      "other": 71
+    }
   },
   "towncrier": {
     "name": "Crieur public",
@@ -1262,7 +1568,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend si un Sbire a nominé.",
+    "night": {
+      "other": 81
+    }
   },
   "undertaker": {
     "name": "Fossoyeur",
@@ -1275,7 +1585,11 @@ const ROLES = {
     "choice": [
       "none"
     ],
-    "note": "Réveillé seulement si quelqu'un a été exécuté dans la journée."
+    "note": "Réveillé seulement si quelqu'un a été exécuté dans la journée.",
+    "nightText": "Apprend le rôle exécuté aujourd'hui.",
+    "night": {
+      "other": 78
+    }
   },
   "vigormortis": {
     "name": "Vigormortis",
@@ -1287,7 +1601,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 49
+    }
   },
   "virgin": {
     "name": "Immaculée",
@@ -1311,7 +1628,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 47
+    }
   },
   "washerwoman": {
     "name": "Lavandière",
@@ -1323,7 +1643,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "nightText": "Apprend qu'un de 2 joueurs est un Villageois précis.",
+    "night": {
+      "first": 52
+    }
   },
   "widow": {
     "name": "Veuve",
@@ -1335,7 +1659,10 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 34
+    }
   },
   "witch": {
     "name": "Sorcière",
@@ -1347,7 +1674,11 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "first": 42,
+      "other": 27
+    }
   },
   "wizard": {
     "name": "Mage",
@@ -1360,7 +1691,11 @@ const ROLES = {
     "choice": [
       "none"
     ],
-    "note": "Réveillé jusqu'à ce qu'il fasse son vœu."
+    "note": "Réveillé jusqu'à ce qu'il fasse son vœu.",
+    "night": {
+      "first": 36,
+      "other": 20
+    }
   },
   "wraith": {
     "name": "Spectre",
@@ -1374,7 +1709,11 @@ const ROLES = {
     "choice": [
       "none"
     ],
-    "note": "Peut ouvrir les yeux quand les joueurs maléfiques se réveillent."
+    "note": "Peut ouvrir les yeux quand les joueurs maléfiques se réveillent.",
+    "night": {
+      "first": 6,
+      "other": 4
+    }
   },
   "xaan": {
     "name": "Xaan",
@@ -1386,7 +1725,11 @@ const ROLES = {
     ],
     "choice": [
       "none"
-    ]
+    ],
+    "night": {
+      "first": 32,
+      "other": 16
+    }
   },
   "zombuul": {
     "name": "Zombuul",
@@ -1398,6 +1741,9 @@ const ROLES = {
     ],
     "choice": [
       "one"
-    ]
+    ],
+    "night": {
+      "other": 41
+    }
   }
 };

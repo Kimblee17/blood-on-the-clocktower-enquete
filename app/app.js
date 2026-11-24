@@ -328,17 +328,29 @@
     b.addEventListener("click", () => $("#" + b.dataset.open).showModal()));
 
   let night = "first";
+  const CHOICE_TEXT = { one: "un joueur", two: "2 joueurs", three: "3 joueurs", char: "un personnage" };
+  function nightText(r) {
+    if (r.nightText) return r.nightText;
+    if (r.wake.length === 1 && r.wake[0] === "none") return "Étape du Conteur (sans réveil).";
+    const picks = r.choice.filter((c) => CHOICE_TEXT[c]).map((c) => CHOICE_TEXT[c]);
+    if (!picks.length) return "Reçoit une information.";
+    return `Choisit ${picks.join(" ou ")}.`;
+  }
   function renderNight() {
     const poss = new Set(possible(cur()).map((r) => r.id));
-    const steps = SCRIPT.nightOrder?.[night] || [];
-    $("#night-list").innerHTML = steps.map(([id, txt]) => {
-      if (typeof id === "object") {
-        return `<li><div class="ph">${esc(id.label[0])}</div><div><b>${esc(id.label)}</b><span>${esc(txt)}</span></div></li>`;
+    // Ordre calculé : numéros d'ordre des rôles du scénario + étapes spéciales.
+    const steps = [
+      ...ROLE_LIST.filter((r) => r.night?.[night] != null).map((r) => ({ order: r.night[night], role: r })),
+      ...(SCRIPT.hideNightSpecials ? [] : NIGHT_SPECIALS[night] || []),
+      ...(SCRIPT.nightExtras?.[night] || []),
+    ].sort((a, b) => a.order - b.order);
+    $("#night-list").innerHTML = steps.map((s) => {
+      if (!s.role) {
+        return `<li><div class="ph">${esc(s.label[0])}</div><div><b>${esc(s.label)}</b><span>${esc(s.text)}</span></div></li>`;
       }
-      const r = roleById[id];
-      if (!r) return "";
-      return `<li class="${poss.has(id) ? "" : "dim"}">${icon(id, 36)}<div><b>${esc(r.name)}</b><span>${esc(txt)}</span></div></li>`;
-    }).join("") || `<li><div></div><div><span>Ordre de nuit non renseigné pour ce scénario.</span></div></li>`;
+      const r = s.role;
+      return `<li class="${poss.has(r.id) ? "" : "dim"}">${icon(r.id, 36)}<div><b>${esc(r.name)}</b><span>${esc(nightText(r))}</span></div></li>`;
+    }).join("") || `<li><div></div><div><span>Personne ne se réveille cette nuit-là dans ce scénario.</span></div></li>`;
   }
   document.querySelectorAll("[data-night]").forEach((t) => t.addEventListener("click", () => {
     night = t.dataset.night;

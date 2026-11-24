@@ -1,5 +1,5 @@
 // Service worker : met l'application en cache pour un usage hors ligne.
-const CACHE = "vt-enquete-v6";
+const CACHE = "vt-enquete-v7";
 const CORE = [
   "./",
   "./index.html",

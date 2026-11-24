@@ -29,6 +29,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP = os.path.join(ROOT, "app")
 RAW = "https://raw.githubusercontent.com/bambipotato/botc-fr-bambi/main/"
 API_TREE = "https://api.github.com/repos/bambipotato/botc-fr-bambi/git/trees/main?recursive=1"
+# Ordre de nuit officiel (The Pandemonium Institute) : listes ordonnées d'ids.
+NIGHTSHEET = "https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/main/resources/data/nightsheet.json"
+NIGHT_SPECIAL_LABELS = {
+    "minioninfo": ("Info des Sbires", "Les Sbires apprennent qui est le Démon (7+ joueurs)."),
+    "demoninfo": ("Info du Démon", "Le Démon apprend ses Sbires et 3 rôles absents (7+ joueurs)."),
+}
 ROLE_DIRS = ("tb_roles", "bmr_roles", "sv_roles", "roles_experimentaux", "loric_roles", "legendaire_roles")
 EDITIONS = [
     ("trouble_brewing", "Trouble Brewing", "tb_roles"),
@@ -189,6 +195,48 @@ NOTES = {
     "pithag": "Choisit un joueur et un rôle.",
 }
 
+# Texte court affiché dans l'ordre de nuit (sinon un texte générique est déduit du choix).
+NIGHT_TEXT = {
+    "washerwoman": "Apprend qu'un de 2 joueurs est un Villageois précis.",
+    "librarian": "Apprend qu'un de 2 joueurs est un Marginal précis.",
+    "investigator": "Apprend qu'un de 2 joueurs est un Sbire précis.",
+    "chef": "Apprend le nombre de paires maléfiques.",
+    "empath": "Apprend combien de voisins sont maléfiques.",
+    "undertaker": "Apprend le rôle exécuté aujourd'hui.",
+    "spy": "Regarde le Grimoire.",
+    "butler": "Choisit son maître.",
+    "ravenkeeper": "Si mort cette nuit, choisit un joueur et apprend son rôle.",
+    "sage": "Si tué par le Démon, apprend 2 joueurs dont le Démon.",
+    "scarletwoman": "Apprend qu'elle est devenue le Démon.",
+    "clockmaker": "Apprend la distance Démon / Sbire le plus proche.",
+    "grandmother": "Apprend un joueur bon et son rôle.",
+    "knight": "Apprend 2 joueurs qui ne sont pas le Démon.",
+    "noble": "Apprend 3 joueurs dont 1 seul maléfique.",
+    "steward": "Apprend 1 joueur bon.",
+    "shugenja": "Apprend de quel côté est le joueur maléfique le plus proche.",
+    "pixie": "Apprend un Villageois en jeu.",
+    "balloonist": "Apprend un joueur d'un type différent.",
+    "general": "Apprend quelle équipe gagne.",
+    "highpriestess": "Apprend à qui parler.",
+    "mathematician": "Apprend combien de capacités ont dysfonctionné.",
+    "flowergirl": "Apprend si un Démon a voté.",
+    "towncrier": "Apprend si un Sbire a nominé.",
+    "oracle": "Apprend combien de morts sont maléfiques.",
+    "juggler": "Apprend combien de ses suppositions étaient justes.",
+    "king": "Si autant de morts que de vivants, apprend un rôle en vie.",
+    "eviltwin": "Les jumeaux se découvrent.",
+    "mezepheles": "Apprend son mot secret.",
+    "godfather": "1re nuit : apprend les Marginaux. Ensuite : peut tuer.",
+    "tinker": "Peut mourir (sans réveil).",
+    "lunatic": "Agit comme le Démon qu'il croit être.",
+    "alchemist": "Apprend son pouvoir de Sbire / l'utilise.",
+    "philosopher": "Peut choisir un rôle bon.",
+    "courtier": "Peut choisir un personnage.",
+    "seamstress": "Peut choisir 2 joueurs.",
+    "nightwatchman": "Peut choisir un joueur.",
+    "pukka": "Choisit un joueur ; l'empoisonné précédent meurt.",
+}
+
 # Textes absents ou erronés sur le site.
 ABILITY_FIX = {
     "pukka": "Chaque nuit, choisissez un joueur : il est empoisonné. Le joueur précédemment empoisonné meurt puis redevient sain.",
@@ -310,10 +358,27 @@ def main():
             entry["wake"], entry["choice"] = b
         if rid in NOTES:
             entry["note"] = NOTES[rid]
+        if rid in NIGHT_TEXT:
+            entry["nightText"] = NIGHT_TEXT[rid]
         chars[rid] = entry
 
+    # Numéros d'ordre de nuit : position dans la feuille de nuit officielle.
+    sheet = json.loads(fetch(NIGHTSHEET))
+    specials = {}
+    for key, night in (("firstNight", "first"), ("otherNight", "other")):
+        for n, rid in enumerate(sheet[key], start=1):
+            rid = norm(rid)
+            if rid in chars:
+                chars[rid].setdefault("night", {})[night] = n
+            elif rid in NIGHT_SPECIAL_LABELS:
+                label, text = NIGHT_SPECIAL_LABELS[rid]
+                specials.setdefault(night, []).append({"order": n, "label": label, "text": text})
+    no_order = [k for k, v in chars.items() if "night" not in v and v.get("wake") not in (["none"], None)]
+    if no_order:
+        print("Rôles qui se réveillent mais absents de la feuille de nuit :", no_order)
+
     for s in scripts:
-        s["rules"] = [rules[i] for i in s["roles"] if i in rules]
+        s["rules"] =[rules[i] for i in s["roles"] if i in rules]
         dropped = [i for i in s["roles"] if i not in chars and i not in rules]
         s["roles"] = [i for i in s["roles"] if i in chars]
         if dropped:
@@ -328,6 +393,9 @@ def main():
     head = open(os.path.join(ROOT, "tools", "roles_header.js"), encoding="utf-8").read()
     with open(os.path.join(APP, "roles.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write(head)
+        f.write("// Étapes de nuit qui ne sont pas des rôles, avec leur numéro d'ordre.\n")
+        f.write("const NIGHT_SPECIALS = " + json.dumps(specials, ensure_ascii=False, indent=2) + ";\n\n")
+        f.write("// night.first / night.other : numéro d'ordre de réveil (feuille de nuit officielle).\n")
         f.write("const ROLES = " + json.dumps(chars, ensure_ascii=False, indent=2) + ";\n")
     with open(os.path.join(APP, "scripts_imported.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write("// Généré par tools/import_bambi.py — ne pas modifier à la main.\n")

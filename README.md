@@ -41,9 +41,11 @@ python -I tools/import_bambi.py
 Le script signale les rôles dont le comportement manque : les ajouter dans `BEHAVIOUR` (et éventuellement `NOTES`), puis relancer.
 Les voyageurs ne sont pas gérés.
 
+L'ordre de nuit vient de la [feuille de nuit officielle](https://github.com/ThePandemoniumInstitute/botc-release/blob/main/resources/data/nightsheet.json) : chaque rôle reçoit un numéro (`night.first`, `night.other` dans `roles.js`) et l'ordre de chaque scénario, importé ou non, est calculé en triant ses rôles par numéro. Le texte affiché vient de `NIGHT_TEXT` (sinon il est déduit du type de choix).
+
 ## Ajouter un scénario à la main
 
-Dans `app/scripts.js`, ajouter une entrée (`id`, `name`, `roles`, et si besoin `rules`, `roleNotes`, `setupNote`, `nightOrder`).
+Dans `app/scripts.js`, ajouter une entrée (`id`, `name`, `roles`, et si besoin `rules`, `roleNotes`, `setupNote`, `nightExtras`, `hideNightSpecials`).
 Une entrée qui reprend l'`id` d'un scénario importé le complète au lieu d'en créer un nouveau.
 
 ## Crédits
