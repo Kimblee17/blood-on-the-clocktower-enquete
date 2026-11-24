@@ -250,3 +250,132 @@ dialog h3 { font-size: 15px; color: var(--accent); margin: 16px 0 8px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 dialog a { color: var(--accent); }
+
+/* ---------- Vues (onglets) ---------- */
+.views {
+  display: flex; gap: 4px; padding: 4px; margin-bottom: 12px;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.views button {
+  flex: 1; background: none; border: 0; border-radius: 7px; padding: 8px 10px;
+  color: var(--muted); font-family: var(--serif); font-size: 15px;
+}
+.views button.active { background: var(--surface-2); color: var(--accent); }
+[hidden] { display: none !important; }
+
+/* ---------- Alignement ---------- */
+.a-good { --align: var(--good); }
+.a-evil { --align: var(--evil); }
+.a-unknown { --align: var(--faint); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--align); flex: none; }
+.segmented { display: flex; gap: 4px; margin-top: 4px; }
+.seg {
+  flex: 1; padding: 6px 8px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--line); color: var(--muted);
+}
+.seg.on { border-color: var(--align); color: var(--text); box-shadow: inset 0 0 0 1px var(--align); }
+.seg.a-unknown.on { border-color: var(--muted); box-shadow: inset 0 0 0 1px var(--muted); }
+.note.warn { color: var(--danger); font-style: normal; }
+
+/* ---------- Table en cercle ---------- */
+.table-wrap { container-type: inline-size; max-width: 640px; margin: 0 auto; }
+.table-circle {
+  position: relative; aspect-ratio: 1; width: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--bg-2) 0 52%, transparent 52.5%);
+}
+.table-circle::before {
+  content: ""; position: absolute; inset: 10%; border-radius: 50%;
+  border: 1px dashed var(--line);
+}
+.seat {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: min(104px, 21cqw); padding: 4px; border: 0; border-radius: 10px;
+  background: none; color: var(--text);
+}
+.seat:hover { background: rgba(255,255,255,.04); }
+.seat .tok { position: relative; display: block; }
+.seat .tok img {
+  display: block; width: min(64px, 12.5cqw); height: min(64px, 12.5cqw);
+  border-radius: 50%; background: #f4eee2; object-fit: cover;
+  border: 3px solid var(--align);
+}
+.seat.conf .tok img { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--align); }
+.seat.active .tok img { outline: 3px solid var(--accent); outline-offset: 4px; }
+.seat .tok .n {
+  position: absolute; right: -6px; bottom: -4px; min-width: 22px;
+  font-size: 11px; padding: 1px 5px; border-radius: 999px; text-align: center;
+  background: var(--bg); border: 1px solid var(--line); color: var(--muted);
+}
+.seat .nm {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: clamp(11px, 2.6cqw, 14px); font-weight: 600;
+}
+.seat .sub {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: clamp(10px, 2.2cqw, 12px); color: var(--muted);
+}
+.seat.dead .tok img { filter: grayscale(1); opacity: .45; }
+.seat.dead .nm { text-decoration: line-through; color: var(--faint); }
+.seat.dead .tok::after {
+  content: "✝"; position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: min(28px, 6cqw); color: var(--text); text-shadow: 0 0 4px #000;
+}
+.table-center {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 38%; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center; color: var(--muted); font-size: 13px;
+}
+.table-center strong { font-family: var(--serif); font-size: 34px; color: var(--accent); line-height: 1; }
+.legend { text-align: center; }
+.legend .lg { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--align); margin: 0 2px 0 8px; vertical-align: -1px; }
+
+/* ---------- Grille de déduction ---------- */
+.grid-wrap {
+  overflow: auto; max-height: calc(100vh - 230px);
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2);
+}
+table.deduce { border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.deduce th, .deduce td { padding: 0; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); text-align: center; }
+.deduce thead th { position: sticky; background: var(--bg-2); z-index: 2; }
+.deduce thead tr:first-child th { top: 0; }
+.deduce thead tr:nth-child(2) th { top: 27px; }
+.deduce th.team { font-family: var(--serif); font-weight: 600; padding: 4px 6px; height: 27px; }
+.deduce th.t-townsfolk, .deduce th.rh.t-townsfolk span { color: var(--good); }
+.deduce th.t-outsider, .deduce th.rh.t-outsider span { color: var(--outsider); }
+.deduce th.t-minion, .deduce th.t-demon, .deduce th.rh.t-minion span, .deduce th.rh.t-demon span { color: var(--evil); }
+.deduce th.rh { padding: 4px 2px; vertical-align: top; font-weight: 400; }
+.deduce th.rh img { display: block; margin: 0 auto 4px; border-radius: 50%; background: #f4eee2; }
+.deduce th.rh span {
+  display: block; margin: 0 auto; writing-mode: vertical-rl; transform: rotate(180deg);
+  height: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; text-align: right;
+}
+.deduce .corner, .deduce .pname { position: sticky; left: 0; z-index: 3; background: var(--bg-2); text-align: left; }
+.deduce .corner { z-index: 4; padding: 6px 10px; color: var(--muted); font-weight: 400; }
+.deduce .pname { padding: 0; min-width: 120px; max-width: 160px; }
+.deduce .pname button {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  background: none; border: 0; padding: 6px 10px; text-align: left; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.deduce tr.active .pname { box-shadow: inset 3px 0 0 var(--accent); }
+.deduce tr.active td { background: rgba(201,165,90,.06); }
+.deduce tr.dead .pname button { color: var(--faint); text-decoration: line-through; }
+.deduce .cell {
+  display: block; width: 32px; height: 32px; border: 0; background: none;
+  font-size: 15px; font-weight: 700; color: var(--text);
+}
+.deduce .cell:hover { background: rgba(255,255,255,.06); }
+.deduce .cell.s-yes { background: rgba(201,165,90,.22); color: var(--accent); }
+.deduce .cell.s-no { color: var(--danger); }
+.deduce .cell.s-auto { color: var(--faint); background: rgba(0,0,0,.25); }
+.deduce .cnt { padding: 0 8px; color: var(--muted); font-size: 12px; }
+.deduce tfoot th, .deduce tfoot td { position: sticky; bottom: 0; background: var(--bg-2); border-top: 1px solid var(--line); }
+.deduce tfoot .pname { padding: 6px 10px; color: var(--muted); font-weight: 400; z-index: 4; }
+.deduce tfoot .zero { color: var(--danger); font-weight: 700; }
+@media (max-width: 600px) {
+  .deduce .pname { min-width: 84px; max-width: 104px; }
+  .deduce .pname button { padding: 6px 6px; font-size: 12px; }
+  .top-actions button { padding: 5px 9px; font-size: 13px; }
+}

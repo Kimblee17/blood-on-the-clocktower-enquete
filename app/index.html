@@ -37,6 +37,16 @@
 
   <div class="layout">
     <main>
+      <div class="views" role="tablist" aria-label="Vue">
+        <button type="button" role="tab" data-view="table">Table</button>
+        <button type="button" role="tab" data-view="grid">Grille</button>
+        <button type="button" role="tab" data-view="roles">Rôles</button>
+      </div>
+
+      <section id="table-view" aria-label="Table des joueurs" hidden></section>
+      <section id="grid-view" aria-label="Grille de déduction" hidden></section>
+
+      <div id="roles-view" hidden>
       <section class="filters" aria-label="Filtres">
         <div class="filter-row">
           <div class="multi" id="f-wake"></div>
@@ -51,6 +61,7 @@
       </section>
 
       <section id="roles" class="roles" aria-live="polite"></section>
+      </div>
     </main>
 
     <aside class="side">
