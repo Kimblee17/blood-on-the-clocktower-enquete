@@ -165,7 +165,6 @@
     if (p.explore) {
       $("#player-panel").innerHTML = `
         <h2>Exploration</h2>
-        <p class="intro">Filtrez librement sans l'associer à un joueur. Ajoutez des joueurs avec « + Joueur » pour suivre les rôles possibles de chacun.</p>
         <label class="field">Rôles possibles</label>${list}`;
       return;
     }
