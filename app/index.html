@@ -25,8 +25,8 @@
       </div>
     </div>
     <nav class="top-actions">
-      <button type="button" class="ghost" data-open="night-dialog">Ordre de nuit</button>
-      <button type="button" class="ghost" data-open="rules-dialog">Règles &amp; répartition</button>
+      <button type="button" class="ghost" data-open="help-dialog">Aide de jeu</button>
+      <button type="button" class="ghost" data-open="games-dialog">Parties</button>
       <button type="button" class="ghost danger" id="new-game">Nouvelle partie</button>
     </nav>
   </header>
@@ -50,7 +50,11 @@
 
       <div id="roles-view" hidden>
       <section class="filters" aria-label="Filtres">
-        <div class="filter-row">
+        <div class="filter-row search-row">
+          <input type="search" id="role-search" placeholder="Rechercher un rôle…" aria-label="Rechercher un rôle">
+          <button type="button" class="ghost mobile-only" id="toggle-filters" aria-expanded="false">Filtres</button>
+        </div>
+        <div class="filter-row filter-lists">
           <div class="multi" id="f-wake"></div>
           <div class="multi" id="f-choice"></div>
           <div class="multi" id="f-team"></div>
@@ -58,6 +62,7 @@
         <div class="filter-row meta">
           <span class="count" id="count"></span>
           <label class="switch"><input type="checkbox" id="hide-excluded"> Masquer les rôles écartés</label>
+          <label class="switch"><input type="checkbox" id="compact"> Cartes compactes</label>
           <button type="button" class="link" id="reset-filters">Réinitialiser les filtres</button>
         </div>
       </section>
@@ -76,34 +81,76 @@
     </aside>
   </div>
 
-  <dialog id="night-dialog">
+  <dialog id="help-dialog">
     <form method="dialog" class="dialog-head">
-      <h2>Ordre de nuit</h2>
+      <h2>Aide de jeu</h2>
       <button class="ghost" aria-label="Fermer">Fermer</button>
     </form>
     <div class="tabs">
-      <button type="button" class="tab active" data-night="first">Première nuit</button>
-      <button type="button" class="tab" data-night="other">Autres nuits</button>
+      <button type="button" class="tab active" data-help="night">Ordre de nuit</button>
+      <button type="button" class="tab" data-help="rules">Règles</button>
+      <button type="button" class="tab" data-help="compo">Répartition</button>
+      <button type="button" class="tab" data-help="scripts">Scénarios</button>
     </div>
-    <ol class="night-list" id="night-list"></ol>
+
+    <div class="help-pane" data-pane="night">
+      <div class="tabs sub">
+        <button type="button" class="tab active" data-night="first">Première nuit</button>
+        <button type="button" class="tab" data-night="other">Autres nuits</button>
+      </div>
+      <ol class="night-list" id="night-list"></ol>
+    </div>
+
+    <div class="help-pane" data-pane="rules" hidden>
+      <h3 id="rules-title">Scénario</h3>
+      <ul class="fabled" id="fabled"></ul>
+      <h3>Jinxes (règles du Djinn)</h3>
+      <ul class="fabled" id="jinxes"></ul>
+      <h3>Crédits</h3>
+      <p class="hint">Noms, capacités, icônes, jinxes et scénarios personnalisés : <a href="https://bambipotato.github.io/botc-fr-bambi/" target="_blank" rel="noopener">wiki BotC FR de BambiPotato</a> (<a href="https://creativecommons.org/licenses/by/4.0/deed.fr" target="_blank" rel="noopener">CC BY 4.0</a>), adaptés et complétés. Ordre de nuit : The Pandemonium Institute. Blood on the Clocktower © The Pandemonium Institute. Outil non officiel.</p>
+    </div>
+
+    <div class="help-pane" data-pane="compo" hidden>
+      <label class="inline">Nombre de joueurs
+        <input type="number" id="player-count" min="5" max="15" value="8">
+      </label>
+      <div class="compo" id="compo"></div>
+      <p class="hint" id="setup-note"></p>
+    </div>
+
+    <div class="help-pane" data-pane="scripts" hidden>
+      <h3>Importer un scénario</h3>
+      <p class="hint">Collez le fichier JSON d'un scénario (format de l'outil officiel ou de botc-scripts). Les voyageurs et les rôles inconnus sont ignorés.</p>
+      <textarea id="import-json" rows="6" placeholder='[{"id":"_meta","name":"Mon scénario"},"washerwoman","chef",…]'></textarea>
+      <div class="row">
+        <button type="button" class="primary" id="import-btn">Importer</button>
+        <label class="ghost file-btn">Choisir un fichier…<input type="file" id="import-file" accept=".json,application/json" hidden></label>
+      </div>
+      <p class="hint" id="import-msg"></p>
+      <h3>Mes scénarios</h3>
+      <ul class="custom-list" id="custom-scripts"></ul>
+    </div>
   </dialog>
 
-  <dialog id="rules-dialog">
+  <dialog id="games-dialog">
     <form method="dialog" class="dialog-head">
-      <h2>Règles &amp; répartition</h2>
+      <h2>Parties</h2>
       <button class="ghost" aria-label="Fermer">Fermer</button>
     </form>
-    <h3 id="rules-title">Scénario</h3>
-    <ul class="fabled" id="fabled"></ul>
-    <h3>Répartition</h3>
-    <label class="inline">Nombre de joueurs
-      <input type="number" id="player-count" min="5" max="15" value="8">
-    </label>
-    <div class="compo" id="compo"></div>
-    <p class="hint" id="setup-note"></p>
-    <h3>Crédits</h3>
-    <p class="hint">Noms, capacités, icônes et scénarios personnalisés : <a href="https://bambipotato.github.io/botc-fr-bambi/" target="_blank" rel="noopener">wiki BotC FR de BambiPotato</a> (<a href="https://creativecommons.org/licenses/by/4.0/deed.fr" target="_blank" rel="noopener">CC BY 4.0</a>), adaptés et complétés. Blood on the Clocktower © The Pandemonium Institute. Outil non officiel.</p>
+    <p class="hint">« Nouvelle partie » archive automatiquement la partie en cours. Ouvrir une partie archivée archive aussi celle en cours.</p>
+    <ul class="custom-list" id="games-list"></ul>
   </dialog>
+
+  <dialog id="summary-dialog">
+    <form method="dialog" class="dialog-head">
+      <h2>Résumé de la partie</h2>
+      <button class="ghost" aria-label="Fermer">Fermer</button>
+    </form>
+    <p class="hint">Sélectionnez puis copiez le texte.</p>
+    <textarea id="summary-text" rows="16" readonly></textarea>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="roles.js"></script>
   <script src="scripts_imported.js"></script>

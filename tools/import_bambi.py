@@ -277,7 +277,7 @@ def parse_role(path, text):
     name = re.search(r'font-size:50px;">([^<]+)<', text)
     en = re.search(r"wiki\.bloodontheclocktower\.com/[^\"]+\"[^>]*>([^<]+)<", text)
     return {
-        "id": rid, "dir": path.split("/")[0], "team": team,
+        "id": rid, "dir": path.split("/")[0], "file": path, "team": team,
         "name": unescape(name.group(1) if name else field("title").title()).replace("Djinn & Jinxes", "Djinn"),
         "en": unescape(en.group(1)) if en else "",
         "ability": unescape(field("description")),
@@ -362,6 +362,18 @@ def main():
             entry["nightText"] = NIGHT_TEXT[rid]
         chars[rid] = entry
 
+    # Jinxes (règles du Djinn) en français : page legendaire_roles/djinn.md.
+    # Lignes « - <a href="../dir/role.html">A</a> / <a href="...">B</a> : texte ».
+    by_file = {r["file"][:-3]: r["id"] for r in roles.values()}
+    jinxes = []
+    djinn = texts.get("legendaire_roles/djinn.md", "")
+    for m in re.finditer(r'^- <a href="\.\./([^"]+)\.html"[^>]*>[^<]*</a>\s*/\s*<a href="\.\./([^"]+)\.html"[^>]*>[^<]*</a>\s*:\s*(.+)$', djinn, re.M):
+        a, b = by_file.get(m.group(1)), by_file.get(m.group(2))
+        text = unescape(re.sub(r"<[^>]+>", "", m.group(3)))
+        if a in chars and b in chars:
+            jinxes.append([a, b, text])
+    print(f"{len(jinxes)} jinxes")
+
     # Numéros d'ordre de nuit : position dans la feuille de nuit officielle.
     sheet = json.loads(fetch(NIGHTSHEET))
     specials = {}
@@ -378,7 +390,7 @@ def main():
         print("Rôles qui se réveillent mais absents de la feuille de nuit :", no_order)
 
     for s in scripts:
-        s["rules"] =[rules[i] for i in s["roles"] if i in rules]
+        s["rules"] = [rules[i] for i in s["roles"] if i in rules]
         dropped = [i for i in s["roles"] if i not in chars and i not in rules]
         s["roles"] = [i for i in s["roles"] if i in chars]
         if dropped:
@@ -396,7 +408,9 @@ def main():
         f.write("// Étapes de nuit qui ne sont pas des rôles, avec leur numéro d'ordre.\n")
         f.write("const NIGHT_SPECIALS = " + json.dumps(specials, ensure_ascii=False, indent=2) + ";\n\n")
         f.write("// night.first / night.other : numéro d'ordre de réveil (feuille de nuit officielle).\n")
-        f.write("const ROLES = " + json.dumps(chars, ensure_ascii=False, indent=2) + ";\n")
+        f.write("const ROLES = " + json.dumps(chars, ensure_ascii=False, indent=2) + ";\n\n")
+        f.write("// Jinxes (règles du Djinn) : [rôle A, rôle B, règle]\n")
+        f.write("const JINXES = " + json.dumps(jinxes, ensure_ascii=False, indent=1) + ";\n")
     with open(os.path.join(APP, "scripts_imported.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write("// Généré par tools/import_bambi.py — ne pas modifier à la main.\n")
         f.write("// Source : wiki BotC FR de BambiPotato (CC BY 4.0).\n")

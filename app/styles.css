@@ -154,7 +154,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; margin: 0; }
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
 .role {
-  position: relative; display: grid; grid-template-columns: 56px 1fr; gap: 10px;
+  position: relative; display: grid; grid-template-columns: 56px 1fr auto; gap: 10px;
   text-align: left; width: 100%;
   background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 10px;
@@ -182,10 +182,20 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; margin: 0; }
 .role.off { opacity: .32; filter: grayscale(1); }
 .role.excluded { opacity: .28; filter: grayscale(1); }
 .role.excluded .name { text-decoration: line-through; }
+.role .card-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .role .badge {
-  position: absolute; top: 8px; right: 8px; font-size: 11px;
+  font-size: 11px; white-space: nowrap;
   padding: 1px 7px; border-radius: 999px; background: var(--bg); color: var(--muted);
 }
+.role .x {
+  width: 32px; height: 32px; border-radius: 50%; flex: none;
+  background: var(--bg); border: 1px solid var(--line); color: var(--muted); font-size: 15px;
+}
+.role .x:hover { color: var(--danger); border-color: var(--danger); }
+.role .x.on { color: var(--accent); }
+.role.off .x, .role.excluded .x { filter: none; }
+.role .jinx { font-size: 12px; color: var(--muted); margin: 0 0 6px; padding-left: 8px; border-left: 2px solid var(--accent); }
+.pill .hit { color: var(--accent); }
 .role.claimed { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 .role.hidden { display: none; }
 .empty { color: var(--muted); padding: 24px 0; text-align: center; }
@@ -432,3 +442,76 @@ table.deduce { border-collapse: separate; border-spacing: 0; font-size: 13px; }
   .two { grid-template-columns: 1fr; }
   .views button { font-size: 14px; padding: 8px 4px; }
 }
+
+/* ---------- Cartes compactes ---------- */
+.roles.compact .grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.roles.compact .role { grid-template-columns: 40px 1fr auto; align-items: center; padding: 8px; cursor: pointer; }
+.roles.compact .role img { width: 40px; height: 40px; }
+.roles.compact .role .en { display: none; }
+.roles.compact .role:not(.open) .ability,
+.roles.compact .role:not(.open) .note,
+.roles.compact .role:not(.open) .jinx,
+.roles.compact .role:not(.open) .pills { display: none; }
+.roles.compact .role.open { grid-column: 1 / -1; align-items: start; }
+
+/* ---------- Recherche / filtres ---------- */
+.search-row { margin-bottom: 8px; }
+.search-row input {
+  flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px;
+}
+.mobile-only { display: none; }
+@media (max-width: 600px) {
+  .mobile-only { display: inline-block; }
+  .filters:not(.open) .filter-lists { display: none; }
+}
+
+/* ---------- Joueurs / marqueurs ---------- */
+.strip-hint { align-self: center; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seat .me {
+  font-size: 10px; padding: 0 5px; border-radius: 999px; vertical-align: 1px;
+  background: var(--accent); color: #1a1408; font-weight: 700;
+}
+.badge-n {
+  display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 999px;
+  background: var(--danger); color: #fff; font-size: 11px; font-family: var(--sans); line-height: 18px;
+}
+.tag.warn { color: #e0b46b; border-color: rgba(224,180,107,.4); }
+
+/* ---------- Vérifications ---------- */
+.checks { margin-top: 16px; }
+.compo-check { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
+.compo-check th, .compo-check td { padding: 5px 6px; text-align: center; border-bottom: 1px solid var(--line); }
+.compo-check tbody th { text-align: left; color: var(--muted); font-weight: 400; }
+.compo-check thead th { font-weight: 600; font-size: 12px; }
+.compo-check .t-townsfolk { color: var(--good); }
+.compo-check .t-outsider { color: var(--outsider); }
+.compo-check .t-minion, .compo-check .t-demon { color: var(--evil); }
+.compo-check td.over { color: var(--danger); font-weight: 700; }
+.alerts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.alerts li { padding: 7px 10px; border-radius: 8px; border-left: 3px solid var(--faint); background: var(--surface); }
+.alerts .lvl-bad { border-left-color: var(--danger); }
+.alerts .lvl-warn { border-left-color: #e0b46b; }
+.alerts .lvl-info { border-left-color: var(--good); color: var(--muted); }
+
+/* ---------- Aide de jeu / listes ---------- */
+.tabs { flex-wrap: wrap; }
+.tabs.sub .tab { padding: 4px 10px; font-size: 13px; }
+.custom-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.custom-list li {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+.custom-list li > div:first-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.custom-list .row { margin: 0; }
+.file-btn { display: inline-flex; align-items: center; cursor: pointer; }
+dialog textarea { width: 100%; }
+
+/* ---------- Notification + annuler ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 50; display: flex; gap: 14px; align-items: center; max-width: calc(100vw - 32px);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.5); font-size: 14px;
+}
+.toast button { background: none; border: 0; color: var(--accent); font-weight: 700; padding: 0; }

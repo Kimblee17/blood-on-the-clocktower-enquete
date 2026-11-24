@@ -1747,3 +1747,202 @@ const ROLES = {
     }
   }
 };
+
+// Jinxes (règles du Djinn) : [rôle A, rôle B, règle]
+const JINXES = [
+ [
+  "alchemist",
+  "mastermind",
+  "Un Alchimiste-Conspirateur n'a pas la capacité du Conspirateur et aucun Conspirateur n'est en jeu."
+ ],
+ [
+  "alchemist",
+  "spy",
+  "Un Alchimiste-Espionne n'a pas la capacité d'Espionne et une Espionne est en jeu. Après chaque exécution, l'Alchimiste vivant peut deviner publiquement un joueur vivant comme étant l'Espionne ; si c'est correct, le Démon doit choisir l'Espionne cette nuit."
+ ],
+ [
+  "alchemist",
+  "boffin",
+  "Un Alchimiste-Laborantin n'apprend pas quelle capacité le Démon a obtenue."
+ ],
+ [
+  "alchemist",
+  "wraith",
+  "Un Alchimiste-Spectre n'a pas la capacité de Spectre et un Spectre est en jeu. Après chaque exécution, l'Alchimiste vivant peut deviner publiquement un joueur vivant comme étant le Spectre ; si c'est correct, le Démon doit choisir le Spectre cette nuit."
+ ],
+ [
+  "alchemist",
+  "widow",
+  "Un Alchimiste-Veuve n'a pas la capacité de la Veuve et une Veuve est en jeu. Après chaque exécution, l'Alchimiste vivant peut deviner publiquement un joueur vivant comme étant la Veuve ; si c'est correct, le Démon doit choisir la Veuve cette nuit."
+ ],
+ [
+  "cannibal",
+  "juggler",
+  "Si le Jongleur jongle son premier jour et meurt par exécution, le Cannibale apprend combien de combinaisons étaient correctes."
+ ],
+ [
+  "cannibal",
+  "butler",
+  "Si le Cannibale gagne la capacité du Majordome, il l'apprend."
+ ],
+ [
+  "cannibal",
+  "princess",
+  "Si le Cannibale a nominé, exécuté et tué la Princesse aujourd'hui, le Démon ne tue pas cette nuit."
+ ],
+ [
+  "mathematician",
+  "chambermaid",
+  "La Femme de chambre peut détecter si le Mathématicien se réveille cette nuit."
+ ],
+ [
+  "mathematician",
+  "drunk",
+  "Le Mathématicien apprend si la capacité de l'Ivrogne a produit une fausse information ou n'a pas fonctionné correctement."
+ ],
+ [
+  "mathematician",
+  "lunatic",
+  "Le Mathématicien apprend si le Lunatique attaque des joueurs différents de ceux attaqués par le vrai Démon."
+ ],
+ [
+  "plaguedoctor",
+  "baron",
+  "Si le Conteur gagne la capacité du Baron, jusqu'à deux joueurs deviennent des Marginaux qui ne sont pas en jeu."
+ ],
+ [
+  "plaguedoctor",
+  "boomdandy",
+  "Si le Conteur acquiert la capacité du Boumdandy, un joueur devient le Boumdandy."
+ ],
+ [
+  "plaguedoctor",
+  "spy",
+  "Si le Conteur acquiert la capacité de l'Espionne, un Sbire gagne la capacité de l'Espionne et l'apprend."
+ ],
+ [
+  "plaguedoctor",
+  "scarletwoman",
+  "Si le Conteur acquiert la capacité de la Femme écarlate, un Sbire gagne la capacité de la Femme écarlate et l'apprend."
+ ],
+ [
+  "plaguedoctor",
+  "goblin",
+  "Si le Conteur acquiert la capacité du Gobelin, un Sbire gagne la capacité du Gobelin et l'apprend."
+ ],
+ [
+  "plaguedoctor",
+  "eviltwin",
+  "Si le Conteur acquiert la capacité de la Jumelle maléfique, un joueur devient Jumelle maléfique."
+ ],
+ [
+  "plaguedoctor",
+  "wraith",
+  "Si le Conteur acquiert la capacité du Spectre, un Sbire gagne la capacité de Spectre et l'apprend."
+ ],
+ [
+  "plaguedoctor",
+  "fearmonger",
+  "Si le Docteur de la peste meurt, un Sbire gagne cette capacité en plus de la sienne, et l'apprend."
+ ],
+ [
+  "cerenovus",
+  "goblin",
+  "Le Cerenovus peut rendre un joueur fou d'être Gobelin."
+ ],
+ [
+  "mastermind",
+  "vigormortis",
+  "Un Conspirateur qui a sa capacité la conserve si le Vigormortis meurt."
+ ],
+ [
+  "spy",
+  "damsel",
+  "Si l'Espionne est (ou a été) en jeu, la Demoiselle est empoisonnée."
+ ],
+ [
+  "pithag",
+  "damsel",
+  "Si une Guenaude crée une Demoiselle, le Conteur choisit quel joueur deviendra la Demoiselle."
+ ],
+ [
+  "pithag",
+  "goon",
+  "Si la Guenaude transforme un maléfique en Gros-bras, il ne peut pas redevenir bon via sa propre capacité."
+ ],
+ [
+  "pithag",
+  "politician",
+  "Si la Guenaude transforme un maléfique en Politicien, il ne peut pas redevenir bon via sa propre capacité."
+ ],
+ [
+  "boffin",
+  "goon",
+  "Si le Démon a la capacité du Gros-bras, il ne peut pas redevenir bon via cette capacité."
+ ],
+ [
+  "boffin",
+  "politician",
+  "Le Démon ne peut pas avoir la capacité de Politicien."
+ ],
+ [
+  "widow",
+  "damsel",
+  "Si la Veuve est (ou a été) en jeu, la Demoiselle est empoisonnée."
+ ],
+ [
+  "alhadikhia",
+  "mastermind",
+  "Si Al-Hadikhia meurt exécuté et que le Conspirateur est vivant, Al-Hadikhia choisit trois Bons cette nuit : si tous choisissent de vivre, le Mal gagne, sinon le Bien gagne."
+ ],
+ [
+  "alhadikhia",
+  "princess",
+  "Si la Princesse a nommé et exécuté un joueur lors de son 1er jour, personne ne meurt de l'Al-Hadikhia cette nuit."
+ ],
+ [
+  "leviathan",
+  "innkeeper",
+  "Si le Léviathan nomme et fait exécuter un joueur protégé par l'Aubergiste, le Bien gagne."
+ ],
+ [
+  "leviathan",
+  "banshee",
+  "Chaque nuit*, le Léviathan choisit un joueur bon en vie différent des nuits précédentes : une Banshee choisie meurt et gagne sa capacité."
+ ],
+ [
+  "leviathan",
+  "ravenkeeper",
+  "Chaque nuit*, le Léviathan choisit un joueur en vie différent des nuits précédentes : une Corneille choisie utilise sa capacité mais ne meurt pas."
+ ],
+ [
+  "leviathan",
+  "king",
+  "Si le Léviathan est en jeu et qu'au moins un joueur est mort, le Roi apprend chaque nuit un rôle en vie."
+ ],
+ [
+  "leviathan",
+  "mayor",
+  "Si le Léviathan et le Maire sont tous les deux en vie au 5ème jour et qu'aucune exécution n'a lieu ce jour-là, le Bien gagne."
+ ],
+ [
+  "leviathan",
+  "monk",
+  "Si le Léviathan nomme et exécute le joueur protégé par le Moine, le Bien gagne."
+ ],
+ [
+  "leviathan",
+  "sage",
+  "Chaque nuit*, le Léviathan choisit un joueur bon en vie différent des nuits précédentes : un Sage choisi utilise sa capacité mais ne meurt pas."
+ ],
+ [
+  "leviathan",
+  "soldier",
+  "Si le Léviathan nomme et exécute le Soldat, le Bien gagne."
+ ],
+ [
+  "vortox",
+  "banshee",
+  "Si le Vortox est en jeu et que le Démon tue la Banshee, les joueurs apprennent tout de même que la Banshee est morte."
+ ]
+];
