@@ -322,8 +322,6 @@
               aria-label="${out ? "Remettre en jeu" : "Absent de la partie"} : ${esc(r.name)}"
               title="${out ? "Remettre en jeu" : "Absent de la partie : écarter pour tous les joueurs"}">${out ? "↺" : "⊘"}</button>
           </div>
-          ${r.team === "demon" && ROLE_LIST.filter((d) => d.team === "demon").length > 1
-            ? `<button type="button" class="link small" data-demon="${r.id}" title="Écarter tous les autres Démons pour tous les joueurs">C'est ce Démon</button>` : ""}
         </div>
       </article>`;
   }
@@ -632,12 +630,11 @@
 
   function deleteEvent(id) {
     const e = J().events.find((x) => x.id === id);
-    if (!e) return;
-    snapshot();
+    if (!e || !confirm("Supprimer cet évènement du journal ?")) return;
     J().events = J().events.filter((x) => x !== e);
     const k = killOf(e);
     if (k) { const p = state.profiles.find((x) => x.id === k); if (p) p.dead = J().events.some((x) => killOf(x) === k); }
-    save(); render(); toast("Évènement supprimé.");
+    save(); render();
   }
 
   // Évènements du journal qui concernent un joueur.
@@ -695,25 +692,15 @@
   }
   const select = (id) => { state.current = id; save(); render(); };
 
-  // Annulation de la dernière action (instantané de l'état) + message temporaire.
-  let undoSnap = null, toastTimer;
-  const snapshot = () => { undoSnap = JSON.stringify(state); };
-  function toast(msg, undoable = true) {
+  // Message temporaire.
+  let toastTimer;
+  function toast(msg) {
     const t = $("#toast");
-    t.innerHTML = `<span>${esc(msg)}</span>${undoable && undoSnap ? `<button type="button" id="undo">Annuler</button>` : ""}`;
+    t.innerHTML = `<span>${esc(msg)}</span>`;
     t.hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { t.hidden = true; }, 6000);
   }
-  $("#toast").addEventListener("click", (e) => {
-    if (e.target.id !== "undo" || !undoSnap) return;
-    state = JSON.parse(undoSnap); undoSnap = null;
-    useScript(state.scriptId);
-    gn.value = state.globalNotes;
-    save(); renderScriptSelect(); renderRules(); render();
-    $("#toast").hidden = true;
-  });
-
   $("#player-strip").addEventListener("click", (e) => {
     if (e.target.closest("#add-player")) return addPlayer();
     const chip = e.target.closest(".chip[data-id]");
@@ -781,7 +768,6 @@
     if (!cell) return;
     const p = state.profiles.find((x) => x.id === cell.dataset.p), rid = cell.dataset.r;
     const s = cellState(p, roleById[rid]);
-    snapshot();
     if (s === "yes") p.confirmed = "";                                    // ✓ → vide
     else if (s === "no") {                                                 // ✗ → ✓
       p.excluded = p.excluded.filter((x) => x !== rid);
@@ -794,36 +780,21 @@
   $("#roles").addEventListener("click", (e) => {
     const outBtn = e.target.closest("[data-out]");
     if (outBtn) return toggleOut(outBtn.dataset.out);
-    const dem = e.target.closest("[data-demon]");
-    if (dem) return demonInPlay(dem.dataset.demon);
     const x = e.target.closest("[data-x]");
     if (x) {
       const p = cur(), id = x.dataset.x, was = p.excluded.includes(id);
-      snapshot();
       p.excluded = was ? p.excluded.filter((y) => y !== id) : [...p.excluded, id];
-      save(); render();
-      return toast(`${roleById[id].name} ${was ? "rétabli" : "écarté"}${p.explore ? "" : ` pour ${p.name}`}.`);
+      save(); return render();
     }
     const card = e.target.closest(".role");
     if (card && state.compact) card.classList.toggle("open");
   });
   // Rôle absent de la partie : exclu pour tous les joueurs (et rétablissable).
   function toggleOut(rid) {
-    snapshot();
     const was = isOut(rid);
     state.notInPlay = was ? state.notInPlay.filter((x) => x !== rid) : [...(state.notInPlay || []), rid];
     save(); render();
-    toast(`${roleById[rid].name} ${was ? "remis en jeu" : "absent de la partie (exclu pour tous)"}.`);
   }
-  // « C'est ce Démon » : tous les autres Démons du scénario deviennent absents.
-  function demonInPlay(rid) {
-    snapshot();
-    const others = ROLE_LIST.filter((r) => r.team === "demon" && r.id !== rid).map((r) => r.id);
-    state.notInPlay = [...new Set([...(state.notInPlay || []).filter((x) => x !== rid), ...others])];
-    save(); render();
-    toast(`Démon : ${roleById[rid].name}. Les ${others.length} autres Démons sont exclus pour tous.`);
-  }
-
   $("#role-search").addEventListener("input", (e) => { search = e.target.value; renderRoles(); });
   $("#compact").addEventListener("change", (e) => { state.compact = e.target.checked; save(); renderRoles(); });
   $("#toggle-filters").addEventListener("click", (e) => {
@@ -861,11 +832,10 @@
       save(); render(); return;
     }
     if (e.target.id !== "p-delete") return;
-    snapshot();
+    if (!confirm(`Supprimer « ${p.name} » et ses notes ?`)) return;
     state.profiles = state.profiles.filter((x) => x.id !== p.id);
     state.current = "explore";
     save(); render();
-    toast(`${p.name} supprimé.`);
   });
 
   $("#hide-excluded").addEventListener("change", (e) => { state.hideExcluded = e.target.checked; save(); renderRoles(); });
@@ -890,7 +860,6 @@
   }
   $("#new-game").addEventListener("click", () => {
     if (!confirm("Commencer une nouvelle partie ?\nLa partie en cours est archivée (menu « Parties ») et les noms des joueurs sont conservés.")) return;
-    snapshot();
     archiveCurrent();
     state.profiles = state.profiles.map((p) => ({ ...newProfile(p.name, p.explore), id: p.id }));
     state.globalNotes = ""; gn.value = "";
@@ -916,7 +885,6 @@
     const op = e.target.closest("[data-open-game]"), del = e.target.closest("[data-del-game]");
     if (op) {
       const a = state.archives.find((x) => x.id === op.dataset.openGame);
-      snapshot();
       state.archives = state.archives.filter((x) => x !== a);
       archiveCurrent();
       Object.assign(state, JSON.parse(JSON.stringify(a.game)));
@@ -964,7 +932,7 @@
     const text = summaryText();
     const fallback = () => { $("#summary-text").value = text; $("#summary-dialog").showModal(); $("#summary-text").select(); };
     if (!navigator.clipboard) return fallback();
-    navigator.clipboard.writeText(text).then(() => toast("Résumé copié dans le presse-papiers.", false), fallback);
+    navigator.clipboard.writeText(text).then(() => toast("Résumé copié dans le presse-papiers."), fallback);
   }
 
   // ---------- Dialogues ----------
