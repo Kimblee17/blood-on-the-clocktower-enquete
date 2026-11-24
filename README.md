@@ -1,6 +1,6 @@
-# Veiled Threats · Carnet d'enquête
+# Blood on the Clocktower · Carnet d'enquête
 
-Progressive Web App (HTML/CSS/JS sans dépendance) pour enquêter pendant une partie de Blood on the Clocktower avec le script *Veiled Threats*.
+Progressive Web App (HTML/CSS/JS sans dépendance) pour enquêter pendant une partie de Blood on the Clocktower . Scénario actuellement disponible : *Veiled Threats*.
 
 ## Lancer en local
 
@@ -12,7 +12,7 @@ Puis ouvrir http://localhost:8765.
 
 ## Installer sur téléphone
 
-Version en ligne : https://kimblee17.github.io/veiled-threats-enquete/ — l'ouvrir sur le téléphone puis « Ajouter à l'écran d'accueil ». L'app fonctionne ensuite hors ligne ; les données restent sur l'appareil (localStorage).
+Version en ligne : https://kimblee17.github.io/blood-on-the-clocktower-enquete/ — l'ouvrir sur le téléphone puis « Ajouter à l'écran d'accueil ». L'app fonctionne ensuite hors ligne ; les données restent sur l'appareil (localStorage).
 
 Mettre à jour le site après une modification (penser à changer `CACHE` dans `app/sw.js`) :
 
