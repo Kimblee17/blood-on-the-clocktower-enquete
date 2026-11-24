@@ -45,9 +45,11 @@
     id: explore ? "explore" : uid(), name, explore,
     wake: [], choice: [], team: [], excluded: [],
     dead: false, claim: "", notes: "",
+    align: "", confirmed: "", // align : "good" | "evil" | "" (inconnu)
   });
 
   const defaultState = () => ({
+    view: "table", // "table" | "grid" | "roles"
     scriptId: SCRIPTS[0].id,
     profiles: [newProfile("Exploration", true)],
     current: "explore",
@@ -89,15 +91,44 @@
   }
 
   const cur = () => state.profiles.find((p) => p.id === state.current) || state.profiles[0];
+  // Joueurs dans l'ordre de la table (sens horaire), sans le profil d'exploration.
+  const players = () => state.profiles.filter((p) => !p.explore);
+  const confirmedOf = (p) => (roleById[p.confirmed] ? p.confirmed : "");
 
-  // ---------- Filtrage ----------
+  // ---------- Filtrage / déduction ----------
   function matches(role, p) {
     if (p.wake.length && !role.wake.some((w) => p.wake.includes(w))) return false;
     if (p.choice.length && !role.choice.some((c) => p.choice.includes(c))) return false;
     if (p.team.length && !p.team.includes(role.team)) return false;
     return true;
   }
-  const possible = (p) => ROLE_LIST.filter((r) => matches(r, p) && !p.excluded.includes(r.id));
+  // Joueur (autre que p) dont ce rôle est confirmé.
+  const takenBy = (rid, p) => (p.explore ? null : players().find((o) => o !== p && confirmedOf(o) === rid));
+  // État d'une case joueur × rôle :
+  //   yes = confirmé · no = écarté à la main · auto = exclu par déduction · maybe = possible
+  function cellState(p, r) {
+    const conf = confirmedOf(p);
+    if (conf === r.id) return "yes";
+    if (p.excluded.includes(r.id)) return "no";
+    if (conf || !matches(r, p) || takenBy(r.id, p)) return "auto";
+    return "maybe";
+  }
+  const isPossible = (p, r) => { const s = cellState(p, r); return s === "yes" || s === "maybe"; };
+  const possible = (p) => ROLE_LIST.filter((r) => isPossible(p, r));
+
+  // Voisins vivants les plus proches (gauche = sens anti-horaire, droite = sens horaire).
+  function neighbours(p) {
+    const ps = players(), n = ps.length, i = ps.indexOf(p);
+    if (i < 0 || n < 2) return [null, null];
+    const find = (dir) => {
+      for (let k = 1; k < n; k++) {
+        const o = ps[(i + dir * k + n * k) % n];
+        if (o !== p && !o.dead) return o;
+      }
+      return null;
+    };
+    return [find(-1), find(1)];
+  }
 
   // ---------- Icônes ----------
   const icon = (id, size) => `<img src="icons/roles/${id}.jpg" alt="" loading="lazy" width="${size}" height="${size}" data-initial="${esc((ROLES[id]?.name || "?")[0])}">`;
@@ -173,6 +204,7 @@
     const strip = $("#player-strip");
     strip.innerHTML = state.profiles.map((p) => `
       <button type="button" class="chip ${p.id === state.current ? "active" : ""} ${p.dead ? "dead" : ""}" data-id="${p.id}">
+        ${p.explore ? "" : `<span class="dot a-${p.align || "unknown"}" aria-hidden="true"></span>`}
         <span class="name">${esc(p.name || "Sans nom")}</span>
         <span class="n" title="Rôles encore possibles">${possible(p).length}</span>
       </button>`).join("") +
@@ -180,16 +212,17 @@
   }
 
   function roleCard(r, p) {
-    const on = matches(r, p);
-    const ex = p.excluded.includes(r.id);
+    const st = cellState(p, r);
+    const ex = st === "no";
     const claimed = !p.explore && p.claim === r.id;
-    const cls = ["role", `t-${r.team}`, !on && "off", ex && "excluded", claimed && "claimed",
-      state.hideExcluded && (!on || ex) && "hidden"].filter(Boolean).join(" ");
+    const taken = takenBy(r.id, p);
+    const cls = ["role", `t-${r.team}`, st === "auto" && "off", ex && "excluded", (claimed || st === "yes") && "claimed",
+      state.hideExcluded && (st === "auto" || ex) && "hidden"].filter(Boolean).join(" ");
     const pills = [
       ...r.wake.map((w) => `<span class="pill ${p.wake.includes(w) ? "hit" : ""}">${esc(wakeLabel[w])}</span>`),
       ...r.choice.map((c) => `<span class="pill ${p.choice.includes(c) ? "hit" : ""}">${esc(choiceLabel[c])}</span>`),
     ].join("");
-    const badge = claimed ? "Annoncé" : ex ? "Écarté" : "";
+    const badge = st === "yes" ? "Confirmé" : ex ? "Écarté" : taken ? `Pris : ${esc(taken.name)}` : claimed ? "Annoncé" : "";
     return `
       <button type="button" class="${cls}" data-role="${r.id}" aria-pressed="${ex}">
         ${icon(r.id, 56)}
@@ -208,7 +241,7 @@
     const html = TEAMS.map((t) => {
       const roles = ROLE_LIST.filter((r) => r.team === t.id);
       if (!roles.length) return "";
-      const n = roles.filter((r) => matches(r, p) && !p.excluded.includes(r.id)).length;
+      const n = roles.filter((r) => isPossible(p, r)).length;
       return `<div class="team-block"><h2>${t.label} <small>${n}/${roles.length}</small></h2>
         <div class="grid">${roles.map((r) => roleCard(r, p)).join("")}</div></div>`;
     }).join("");
@@ -229,31 +262,141 @@
       return;
     }
     const claimRole = roleById[p.claim];
-    const warn = claimRole && (!matches(claimRole, p) || p.excluded.includes(claimRole.id))
-      ? `<p class="note" style="color:var(--danger)">Le rôle annoncé ne correspond pas à vos observations : mensonge, ivresse ou poison ?</p>` : "";
+    const warn = claimRole && !isPossible(p, claimRole)
+      ? `<p class="note warn">Le rôle annoncé ne correspond pas à vos déductions : mensonge, ivresse ou poison ?</p>` : "";
+    const roleOptions = (sel) => TEAMS.map((t) => {
+      const rs = ROLE_LIST.filter((r) => r.team === t.id);
+      return rs.length ? `<optgroup label="${t.label}">${rs.map((r) => `<option value="${r.id}" ${sel === r.id ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>` : "";
+    }).join("");
+    const [left, right] = neighbours(p);
+    const nb = players().length > 2
+      ? `<p class="intro">Voisins vivants : <b>${esc(left?.name ?? "—")}</b> ← · → <b>${esc(right?.name ?? "—")}</b></p>` : "";
+    const alignBtn = (v, label) => `<button type="button" class="seg a-${v || "unknown"} ${p.align === v ? "on" : ""}" data-align="${v}">${label}</button>`;
     $("#player-panel").innerHTML = `
       <h2>Joueur</h2>
       <label class="field">Nom<input type="text" id="p-name" value="${esc(p.name)}" autocomplete="off"></label>
       <div class="row"><label class="switch"><input type="checkbox" id="p-dead" ${p.dead ? "checked" : ""}> Mort</label></div>
-      <label class="field">Rôle annoncé
-        <select id="p-claim">
-          <option value="">— Aucun —</option>
-          ${TEAMS.map((t) => {
-            const rs = ROLE_LIST.filter((r) => r.team === t.id);
-            return rs.length ? `<optgroup label="${t.label}">${rs.map((r) => `<option value="${r.id}" ${p.claim === r.id ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>` : "";
-          }).join("")}
-        </select>
-      </label>
+      <label class="field">Alignement soupçonné</label>
+      <div class="segmented" role="group" aria-label="Alignement soupçonné">
+        ${alignBtn("good", "Bon")}${alignBtn("", "?")}${alignBtn("evil", "Mauvais")}
+      </div>
+      <label class="field">Rôle annoncé<select id="p-claim"><option value="">— Aucun —</option>${roleOptions(p.claim)}</select></label>
       ${warn}
+      <label class="field">Rôle confirmé<select id="p-conf"><option value="">— Inconnu —</option>${roleOptions(confirmedOf(p))}</select></label>
+      <label class="field">Place à la table</label>
+      ${nb}
+      <div class="row">
+        <button type="button" class="ghost" data-move="-1">← Reculer</button>
+        <button type="button" class="ghost" data-move="1">Avancer →</button>
+      </div>
       <label class="field">Rôles possibles (${poss.length})</label>${list}
       <label class="field">Notes sur ce joueur<textarea id="p-notes" rows="5" placeholder="Ce qu'il dit, ses votes, ses infos…">${esc(p.notes)}</textarea></label>
       <div class="row"><button type="button" class="ghost danger" id="p-delete">Supprimer ce joueur</button></div>`;
   }
 
+  // ---------- Vue Table (cercle) ----------
+  // Jeton d'un joueur : rôle confirmé, sinon rôle annoncé, sinon son initiale.
+  function token(p) {
+    const conf = confirmedOf(p), claim = roleById[p.claim] ? p.claim : "";
+    const rid = conf || claim;
+    const img = rid
+      ? icon(rid, 64)
+      : `<img src="${placeholder(esc((p.name || "?").trim()[0] || "?").toUpperCase())}" alt="" width="64" height="64">`;
+    return { img, rid, conf };
+  }
+
+  function renderTable() {
+    const ps = players(), n = ps.length;
+    const alive = ps.filter((p) => !p.dead).length;
+    const seats = ps.map((p, i) => {
+      const a = -Math.PI / 2 + (2 * Math.PI * i) / Math.max(n, 1);
+      const x = 50 + 40 * Math.cos(a), y = 50 + 40 * Math.sin(a);
+      const t = token(p);
+      const sub = t.conf ? `✓ ${roleById[t.conf].name}` : t.rid ? `« ${roleById[t.rid].name} »` : "?";
+      const cls = ["seat", `a-${p.align || "unknown"}`, p.dead && "dead", p.id === state.current && "active", t.conf && "conf"].filter(Boolean).join(" ");
+      return `
+        <button type="button" class="${cls}" data-id="${p.id}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"
+          aria-label="${esc(p.name)}${p.dead ? ", mort" : ""}">
+          <span class="tok">${t.img}<span class="n">${possible(p).length}</span></span>
+          <span class="nm">${esc(p.name || "Sans nom")}</span>
+          <span class="sub">${esc(sub)}</span>
+        </button>`;
+    }).join("");
+    $("#table-view").innerHTML = `
+      <div class="table-wrap">
+        <div class="table-circle">
+          ${seats}
+          <div class="table-center">
+            ${n ? `<strong>${alive}</strong><span>vivant${alive > 1 ? "s" : ""} sur ${n}</span>`
+                : `<span>Ajoutez les joueurs dans l'ordre de la table, en partant du haut et dans le sens horaire.</span>`}
+            <button type="button" class="ghost add-seat" id="add-seat">+ Joueur</button>
+          </div>
+        </div>
+      </div>
+      <p class="hint legend">
+        <span class="lg a-good"></span> Bon <span class="lg a-evil"></span> Mauvais <span class="lg a-unknown"></span> Inconnu
+        · ✓ rôle confirmé · « » rôle annoncé · le chiffre = rôles encore possibles
+      </p>`;
+  }
+
+  // ---------- Vue Grille (joueurs × rôles) ----------
+  const CELL = { yes: "✓", no: "✗", auto: "·", maybe: "" };
+  const CELL_LABEL = { yes: "confirmé", no: "écarté", auto: "exclu par déduction", maybe: "possible" };
+  function renderGrid() {
+    const ps = players();
+    if (!ps.length) {
+      $("#grid-view").innerHTML = `<p class="empty">Ajoutez des joueurs pour remplir la grille de déduction.</p>`;
+      return;
+    }
+    const teams = TEAMS.map((t) => ({ ...t, roles: ROLE_LIST.filter((r) => r.team === t.id) })).filter((t) => t.roles.length);
+    const roles = teams.flatMap((t) => t.roles);
+    const head1 = teams.map((t) => `<th colspan="${t.roles.length}" class="team t-${t.id}">${t.label}</th>`).join("");
+    const head2 = roles.map((r) => `<th class="rh t-${r.team}" title="${esc(r.name)} — ${esc(r.ability)}">${icon(r.id, 28)}<span>${esc(r.name)}</span></th>`).join("");
+    const rows = ps.map((p) => {
+      const cells = roles.map((r) => {
+        const s = cellState(p, r);
+        return `<td><button type="button" class="cell s-${s}" data-p="${p.id}" data-r="${r.id}"
+          aria-label="${esc(p.name)} / ${esc(r.name)} : ${CELL_LABEL[s]}">${CELL[s]}</button></td>`;
+      }).join("");
+      return `<tr class="${p.id === state.current ? "active" : ""} ${p.dead ? "dead" : ""}">
+        <th class="pname"><button type="button" data-id="${p.id}"><span class="dot a-${p.align || "unknown"}"></span>${esc(p.name || "Sans nom")}</button></th>
+        ${cells}<td class="cnt">${possible(p).length}</td></tr>`;
+    }).join("");
+    const foot = roles.map((r) => {
+      const k = ps.filter((p) => isPossible(p, r)).length;
+      return `<td class="cnt ${k === 0 ? "zero" : ""}" title="${k} joueur(s) peuvent être ${esc(r.name)}">${k}</td>`;
+    }).join("");
+    $("#grid-view").innerHTML = `
+      <div class="grid-wrap">
+        <table class="deduce">
+          <thead><tr><th class="corner" rowspan="2">Joueur</th>${head1}<th class="cnt" rowspan="2" title="Rôles possibles">#</th></tr><tr>${head2}</tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr><th class="pname">Candidats</th>${foot}<td></td></tr></tfoot>
+        </table>
+      </div>
+      <p class="hint">Touchez une case : vide → ✗ écarté → ✓ confirmé → vide.
+        « · » = exclu par vos filtres ou parce que le rôle est confirmé chez un autre joueur.
+        La ligne « Candidats » compte les joueurs qui peuvent encore avoir ce rôle (0 = rôle sans doute absent).</p>`;
+  }
+
+  function renderView() {
+    const v = state.view;
+    document.querySelectorAll("[data-view]").forEach((b) => {
+      b.classList.toggle("active", b.dataset.view === v);
+      b.setAttribute("aria-selected", String(b.dataset.view === v));
+    });
+    $("#roles-view").hidden = v !== "roles";
+    $("#table-view").hidden = v !== "table";
+    $("#grid-view").hidden = v !== "grid";
+    if (v === "table") renderTable();
+    if (v === "grid") renderGrid();
+    if (v === "roles") renderRoles();
+  }
+
   function render() {
     multis.forEach((f) => f());
     renderPlayers();
-    renderRoles();
+    renderView();
     renderPanel();
   }
 
@@ -264,18 +407,45 @@
     save(); renderScriptSelect(); renderRules(); render();
   });
 
+  function addPlayer() {
+    const p = newProfile(`Joueur ${players().length + 1}`);
+    state.profiles.push(p);
+    state.current = p.id;
+    save(); render();
+    const inp = $("#p-name"); if (inp) { inp.focus(); inp.select(); }
+  }
+  const select = (id) => { state.current = id; save(); render(); };
+
   $("#player-strip").addEventListener("click", (e) => {
-    if (e.target.closest("#add-player")) {
-      const n = state.profiles.filter((p) => !p.explore).length + 1;
-      const p = newProfile(`Joueur ${n}`);
-      state.profiles.push(p);
-      state.current = p.id;
-      save(); render();
-      const inp = $("#p-name"); if (inp) { inp.focus(); inp.select(); }
-      return;
-    }
+    if (e.target.closest("#add-player")) return addPlayer();
     const chip = e.target.closest(".chip[data-id]");
-    if (chip) { state.current = chip.dataset.id; save(); render(); }
+    if (chip) select(chip.dataset.id);
+  });
+
+  document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => {
+    state.view = b.dataset.view; save(); renderView();
+  }));
+
+  $("#table-view").addEventListener("click", (e) => {
+    if (e.target.closest("#add-seat")) return addPlayer();
+    const seat = e.target.closest(".seat");
+    if (seat) select(seat.dataset.id);
+  });
+
+  $("#grid-view").addEventListener("click", (e) => {
+    const name = e.target.closest(".pname button[data-id]");
+    if (name) return select(name.dataset.id);
+    const cell = e.target.closest(".cell");
+    if (!cell) return;
+    const p = state.profiles.find((x) => x.id === cell.dataset.p), rid = cell.dataset.r;
+    const s = cellState(p, roleById[rid]);
+    if (s === "yes") p.confirmed = "";                                    // ✓ → vide
+    else if (s === "no") {                                                 // ✗ → ✓
+      p.excluded = p.excluded.filter((x) => x !== rid);
+      p.confirmed = rid;
+    } else p.excluded = [...p.excluded, rid];                              // vide / · → ✗
+    state.current = p.id;
+    save(); render();
   });
 
   $("#roles").addEventListener("click", (e) => {
@@ -288,17 +458,31 @@
 
   $("#player-panel").addEventListener("input", (e) => {
     const p = cur();
-    if (e.target.id === "p-name") { p.name = e.target.value; save(); renderPlayers(); renderRoles(); }
+    if (e.target.id === "p-name") { p.name = e.target.value; save(); renderPlayers(); renderView(); }
     if (e.target.id === "p-notes") { p.notes = e.target.value; save(); }
   });
   $("#player-panel").addEventListener("change", (e) => {
     const p = cur();
-    if (e.target.id === "p-dead") { p.dead = e.target.checked; save(); renderPlayers(); }
-    if (e.target.id === "p-claim") { p.claim = e.target.value; save(); renderRoles(); renderPanel(); }
+    if (e.target.id === "p-dead") { p.dead = e.target.checked; save(); render(); }
+    if (e.target.id === "p-claim") { p.claim = e.target.value; save(); render(); }
+    if (e.target.id === "p-conf") {
+      p.confirmed = e.target.value;
+      if (p.confirmed) p.excluded = p.excluded.filter((x) => x !== p.confirmed);
+      save(); render();
+    }
   });
   $("#player-panel").addEventListener("click", (e) => {
-    if (e.target.id !== "p-delete") return;
     const p = cur();
+    const al = e.target.closest("[data-align]");
+    if (al) { p.align = al.dataset.align; save(); render(); return; }
+    const mv = e.target.closest("[data-move]");
+    if (mv) {
+      const ps = players(), n = ps.length, i = ps.indexOf(p), j = (i + Number(mv.dataset.move) + n) % n;
+      [ps[i], ps[j]] = [ps[j], ps[i]];
+      state.profiles = [...state.profiles.filter((x) => x.explore), ...ps];
+      save(); render(); return;
+    }
+    if (e.target.id !== "p-delete") return;
     if (!confirm(`Supprimer « ${p.name} » et ses notes ?`)) return;
     state.profiles = state.profiles.filter((x) => x.id !== p.id);
     state.current = "explore";
