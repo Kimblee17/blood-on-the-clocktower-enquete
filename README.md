@@ -17,7 +17,7 @@ Version en ligne : https://kimblee17.github.io/veiled-threats-enquete/ — l'ouv
 Mettre à jour le site après une modification (penser à changer `CACHE` dans `app/sw.js`) :
 
 ```powershell
-git push origin `git subtree split --prefix app main`:gh-pages --force
+git push origin "$(git subtree split --prefix app main):refs/heads/gh-pages" --force
 ```
 
 ## Structure
