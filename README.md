@@ -1,6 +1,6 @@
 # Blood on the Clocktower · Carnet d'enquête
 
-Progressive Web App (HTML/CSS/JS sans dépendance) pour enquêter pendant une partie de Blood on the Clocktower. Scénarios disponibles : *Veiled Threats*, *Trouble Brewing*.
+Progressive Web App (HTML/CSS/JS sans dépendance) pour enquêter pendant une partie de Blood on the Clocktower. Scénarios disponibles : les 3 éditions de base (Trouble Brewing, Bad Moon Rising, Sects & Violets), Veiled Threats et 8 scénarios personnalisés.
 
 ## Lancer en local
 
@@ -22,15 +22,31 @@ git push origin "$(git subtree split --prefix app main):refs/heads/gh-pages" --f
 
 ## Structure
 
-- `app/roles.js` — base de données des rôles (capacité, réveil, choix), partagée par tous les scénarios, + répartition standard.
-- `app/scripts.js` — les scénarios : liste de rôles, règles maison, ordre de nuit.
+- `app/roles.js` — base de données des rôles (**générée**, voir plus bas).
+- `app/scripts_imported.js` — scénarios importés (**généré**).
+- `app/scripts.js` — scénarios écrits à la main (Veiled Threats) et compléments aux scénarios importés (ordre de nuit, notes, règles de répartition).
 - `app/app.js` — logique (sélecteur de scénario, filtres, joueurs, notes, sauvegarde).
 - `app/sw.js` — cache hors ligne. Changer `CACHE` après chaque mise à jour.
+- `tools/import_bambi.py` — import depuis le wiki BotC FR.
 
-## Ajouter un scénario
+## Importer / mettre à jour les rôles et scénarios
 
-1. Pour chaque rôle absent de `app/roles.js`, ajouter une entrée (`name`, `en`, `team`, `ability`, `wake`, `choice`).
-   Les rôles dont le comportement dépend des autres (Alchimiste, Lunatique, Ivrogne…) utilisent `derive` au lieu de `wake` / `choice`.
-2. Facultatif : ajouter l'icône `app/icons/roles/<id>.jpg` (128×128) et l'ajouter à la liste de `app/sw.js`. Sans icône, l'initiale du rôle s'affiche.
-3. Ajouter le scénario dans `app/scripts.js` (`id`, `name`, `roles`, et si besoin `rules`, `roleNotes`, `setupNote`, `nightOrder`).
-4. Incrémenter `CACHE` dans `app/sw.js`, puis publier.
+Les noms, capacités, icônes et scénarios personnalisés viennent du [wiki BotC FR de BambiPotato](https://bambipotato.github.io/botc-fr-bambi/).
+Le moment de réveil et le type de choix de chaque rôle ne figurent pas sur le site : ils sont renseignés dans `BEHAVIOUR` du script d'import.
+
+```powershell
+python -I tools/import_bambi.py
+```
+
+Le script signale les rôles dont le comportement manque : les ajouter dans `BEHAVIOUR` (et éventuellement `NOTES`), puis relancer.
+Les voyageurs ne sont pas gérés.
+
+## Ajouter un scénario à la main
+
+Dans `app/scripts.js`, ajouter une entrée (`id`, `name`, `roles`, et si besoin `rules`, `roleNotes`, `setupNote`, `nightOrder`).
+Une entrée qui reprend l'`id` d'un scénario importé le complète au lieu d'en créer un nouveau.
+
+## Crédits
+
+- Noms, capacités, icônes et scénarios personnalisés : wiki BotC FR de BambiPotato, licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.fr). Textes parfois corrigés ou complétés.
+- Blood on the Clocktower © The Pandemonium Institute. Outil non officiel.
