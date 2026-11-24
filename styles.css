@@ -515,3 +515,13 @@ dialog textarea { width: 100%; }
   padding: 10px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.5); font-size: 14px;
 }
 .toast button { background: none; border: 0; color: var(--accent); font-weight: 700; padding: 0; }
+
+/* ---------- Ordre de nuit dans le journal ---------- */
+.j-night { margin-bottom: 16px; }
+.j-night summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+.j-night summary::-webkit-details-marker { display: none; }
+.j-night summary::before { content: "▸"; color: var(--muted); }
+.j-night[open] summary::before { content: "▾"; }
+.j-night summary h2 { margin: 0; }
+.j-night .night-list { margin-top: 10px; }
+.night-list .who { display: block; font-size: 12px; color: var(--accent); }
