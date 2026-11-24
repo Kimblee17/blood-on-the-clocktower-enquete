@@ -12,7 +12,13 @@ Puis ouvrir http://localhost:8765.
 
 ## Installer sur téléphone
 
-Une PWA doit être servie en HTTPS. Le plus simple : publier le dossier `app/` (GitHub Pages, Netlify, Cloudflare Pages…), ouvrir l'adresse sur le téléphone puis « Ajouter à l'écran d'accueil ». L'app fonctionne ensuite hors ligne ; les données restent sur l'appareil (localStorage).
+Version en ligne : https://kimblee17.github.io/veiled-threats-enquete/ — l'ouvrir sur le téléphone puis « Ajouter à l'écran d'accueil ». L'app fonctionne ensuite hors ligne ; les données restent sur l'appareil (localStorage).
+
+Mettre à jour le site après une modification (penser à changer `CACHE` dans `app/sw.js`) :
+
+```powershell
+git push origin `git subtree split --prefix app main`:gh-pages --force
+```
 
 ## Structure
 
