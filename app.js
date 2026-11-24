@@ -344,13 +344,9 @@
     const p = cur();
     const poss = possible(p);
     const list = `<div class="possible-list">${poss.map((r) => `<span class="pill">${esc(r.name)}</span>`).join("") || `<span class="intro">Aucun</span>`}</div>`;
-    if (p.explore) {
-      $("#player-panel").innerHTML = `
-        <h2>Aucun joueur sélectionné</h2>
-        <p class="intro">Touchez un joueur (bande du haut, Table ou Grille) pour voir sa fiche. Les filtres de l'onglet Rôles s'appliquent alors à lui ; sans joueur, ils servent juste à explorer.</p>
-        <label class="field">Rôles possibles selon les filtres</label>${list}`;
-      return;
-    }
+    // Sans joueur sélectionné, pas de fiche : l'onglet Rôles suffit pour explorer.
+    $("#player-panel").hidden = !!p.explore;
+    if (p.explore) return;
     const claimRole = roleById[p.claim];
     const warn = claimRole && !isPossible(p, claimRole)
       ? `<p class="note warn">Le rôle annoncé ne correspond pas à vos déductions : mensonge, ivresse ou poison ?</p>` : "";
