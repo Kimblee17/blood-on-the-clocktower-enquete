@@ -1,6 +1,6 @@
 # Blood on the Clocktower · Carnet d'enquête
 
-Progressive Web App (HTML/CSS/JS sans dépendance) pour enquêter pendant une partie de Blood on the Clocktower. Scénario actuellement disponible : *Veiled Threats*.
+Progressive Web App (HTML/CSS/JS sans dépendance) pour enquêter pendant une partie de Blood on the Clocktower. Scénarios disponibles : *Veiled Threats*, *Trouble Brewing*.
 
 ## Lancer en local
 
