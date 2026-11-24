@@ -145,3 +145,70 @@ test("parseNames : une liste collée devient des noms propres", () => {
   assert.deepEqual(parseNames("1. Léa\n2) Tom\n\n  Marc  \nInès, Hugo; Zoé"), ["Léa", "Tom", "Marc", "Inès", "Hugo", "Zoé"]);
   assert.deepEqual(parseNames(""), []);
 });
+
+// ---------- Infos structurées → déductions ----------
+const info = (L, ctx, src, fields) => {
+  ctx.state.journal.events.push({ id: String(Math.random()), phase: 0, type: "info", player: src.id, text: "", targets: fields.players || [], ...fields });
+  L.invalidate();
+};
+
+test("Lavandière : le rôle vu est écarté pour les joueurs non désignés", () => {
+  const { L, ctx, a, b, c, d, r } = game("trouble_brewing");
+  info(L, ctx, a, { kind: "pair", players: [b.id, c.id], role: "fortuneteller" });
+  assert.equal(L.cellState(d, r.fortuneteller), "ded");
+  assert.equal(L.cellState(a, r.fortuneteller), "ded", "la source aussi");
+  assert.equal(L.cellState(b, r.fortuneteller), "maybe");
+  assert.match(L.deducedWhy(d, "fortuneteller"), /Léa, N1/);
+});
+
+test("Archiviste « aucun Marginal » : tous les Marginaux écartés", () => {
+  const { L, ctx, a, b, r } = game("trouble_brewing");
+  info(L, ctx, a, { kind: "pair", none: true, players: [] });
+  for (const id of ["butler", "drunk", "recluse", "saint"]) assert.equal(L.cellState(b, r[id]), "ded", id);
+});
+
+test("Croque-mort : le joueur est ce rôle, les autres ne le sont pas", () => {
+  const { L, ctx, a, b, c, r } = game("trouble_brewing");
+  info(L, ctx, a, { kind: "is", players: [b.id], role: "imp" });
+  assert.equal(L.cellState(b, r.imp), "maybe");
+  assert.equal(L.cellState(b, r.chef), "ded");
+  assert.equal(L.cellState(c, r.imp), "ded");
+  assert.deepEqual([...L.possible(b).map((x) => x.id)], ["imp"]);
+});
+
+test("Voyante « Non » écarte les Démons ; « Oui » ne déduit rien", () => {
+  const { L, ctx, a, b, c, r } = game("trouble_brewing");
+  info(L, ctx, a, { kind: "yesno", players: [b.id, c.id], yes: true, demon: true });
+  assert.equal(L.cellState(b, r.imp), "maybe");
+  info(L, ctx, a, { kind: "yesno", players: [b.id, c.id], yes: false, demon: true });
+  assert.equal(L.cellState(b, r.imp), "ded");
+  assert.equal(L.cellState(c, r.imp), "ded");
+});
+
+test("Intendante : joueur bon → Sbires et Démons écartés ; Rêveur : 2 rôles seulement", () => {
+  const { L, ctx, a, b, c, r } = game("trouble_brewing");
+  info(L, ctx, a, { kind: "good", players: [b.id] });
+  assert.equal(L.cellState(b, r.poisoner), "ded");
+  assert.equal(L.cellState(b, r.chef), "maybe");
+  info(L, ctx, a, { kind: "among", players: [c.id], roles: ["chef", "spy"] });
+  assert.deepEqual([...L.possible(c).map((x) => x.id)].sort(), ["chef", "spy"]);
+});
+
+test("source ivre / empoisonnée : ses déductions disparaissent ; le ✗ manuel prime", () => {
+  const { L, ctx, a, b, d, r } = game("trouble_brewing");
+  info(L, ctx, a, { kind: "pair", players: [b.id, b.id], role: "chef" });
+  d.excluded.push("chef");
+  assert.equal(L.cellState(d, r.chef), "no", "le ✗ manuel reste affiché");
+  a.unreliable = true; L.invalidate();
+  d.excluded = [];
+  assert.equal(L.cellState(d, r.chef), "maybe");
+});
+
+test("description lisible des infos", async () => {
+  const { describeInfo } = await import("../app/js/infos.js");
+  const names = (id) => ({ x: "Tom", y: "Marc" }[id]);
+  const rn = (id) => ({ fortuneteller: "Voyante" }[id]);
+  assert.equal(describeInfo({ kind: "pair", players: ["x", "y"], role: "fortuneteller" }, names, rn), "Tom ou Marc : l'un est Voyante");
+  assert.equal(describeInfo({ kind: "number", sourceRole: "empath", num: 1, players: ["x", "y"] }, names, rn), "1 voisin mauvais (Tom et Marc)");
+  assert.equal(describeInfo({ kind: "yesno", sourceRole: "fortuneteller", players: ["x", "y"], yes: false, q: "Un Démon parmi eux ?" }, names, rn), "Tom et Marc — Un Démon parmi eux ? Non");
+});

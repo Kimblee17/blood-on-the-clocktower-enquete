@@ -54,15 +54,16 @@ function roleCard(r, p, jinxes) {
   const st = L.cellState(p, r), ex = st === "no", out = L.isOut(r.id);
   const claimed = !p.explore && p.claim === r.id;
   const taken = L.takenBy(r.id, p);
-  const cls = ["role", `t-${r.team}`, st === "auto" && "off", ex && "excluded", (claimed || st === "yes") && "claimed",
-    app.state.hideExcluded && (st === "auto" || ex) && "hidden"].filter(Boolean).join(" ");
+  const off = st === "auto" || st === "ded";
+  const cls = ["role", `t-${r.team}`, off && "off", ex && "excluded", (claimed || st === "yes") && "claimed",
+    app.state.hideExcluded && (off || ex) && "hidden"].filter(Boolean).join(" ");
   const pills = [
     `<span class="pill" title="Réveil">☾ ${r.wake.map((w) => `<span class="${p.wake.includes(w) ? "hit" : ""}">${esc(WAKE_SHORT[w])}</span>`).join(" / ")}</span>`,
     `<span class="pill" title="Choix">◎ ${r.choice.map((c) => `<span class="${p.choice.includes(c) ? "hit" : ""}">${esc(CHOICE_SHORT[c])}</span>`).join(" / ")}</span>`,
   ].join("");
   const jx = jinxes.filter(([a, b]) => a === r.id || b === r.id).map(([a, b, t]) =>
     `<p class="jinx"><b>Jinx · ${esc(app.byId[a === r.id ? b : a].name)}</b> : ${esc(t)}</p>`).join("");
-  const badge = st === "yes" ? "Confirmé" : out ? "Absent de la partie" : ex ? "Écarté" : taken ? `Pris : ${esc(taken.name)}` : claimed ? "Annoncé" : "";
+  const badge = st === "yes" ? "Confirmé" : out ? "Absent de la partie" : ex ? "Écarté" : st === "ded" ? `Déduit (${esc(L.deducedWhy(p, r.id))})` : taken ? `Pris : ${esc(taken.name)}` : claimed ? "Annoncé" : "";
   const forWho = p.explore ? "" : ` pour ${esc(p.name)}`;
   return `
     <article class="${cls}" data-role="${r.id}">

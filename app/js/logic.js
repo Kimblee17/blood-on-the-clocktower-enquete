@@ -54,17 +54,56 @@ export function createLogic(ctx) {
   // Joueur (autre que p) dont ce rôle est confirmé.
   L.takenBy = (rid, p) => (p.explore ? null : L.players().find((o) => o !== p && L.confirmedOf(o) === rid));
   // État d'une case joueur × rôle :
-  //   yes = confirmé · no = écarté à la main · auto = exclu par déduction · maybe = possible
+  //   yes = confirmé · no = écarté à la main · ded = déduit d'une info du journal
+  //   auto = exclu (filtres, rôle absent ou pris) · maybe = possible
   L.cellState = (p, r) => {
     const conf = L.confirmedOf(p);
     if (conf === r.id) return "yes";
     if (p.excluded.includes(r.id)) return "no";
     if (L.isOut(r.id)) return "auto";
+    if (L.deducedWhy(p, r.id)) return "ded";
     if (conf || !L.matches(r, p) || L.takenBy(r.id, p)) return "auto";
     return "maybe";
   };
   L.isPossible = (p, r) => { const s = L.cellState(p, r); return s === "yes" || s === "maybe"; };
   L.possible = (p) => ctx.roles.filter((r) => L.isPossible(p, r));
+
+  // ---------- Déductions tirées des infos structurées du journal ----------
+  // Map « idJoueur|idRôle » → origine (« Léa, N1 »). Les infos d'un joueur marqué
+  // « ivre / empoisonné ? » sont ignorées. Calcul mis en cache : L.invalidate()
+  // après chaque modification (fait par le rendu).
+  let dedCache = null;
+  L.invalidate = () => { dedCache = null; };
+  L.deductions = () => {
+    if (dedCache) return dedCache;
+    const map = new Map(), ps = L.players(), roles = ctx.roles;
+    const team = (t) => roles.filter((r) => r.team === t).map((r) => r.id);
+    const demons = team("demon"), evil = [...team("minion"), ...demons];
+    for (const e of L.ordered()) {
+      if (e.type !== "info" || !e.kind) continue;
+      const src = S().profiles.find((x) => x.id === e.player);
+      if (src?.unreliable) continue;
+      const why = `${src ? src.name : "?"}, ${phaseShort(e.phase)}`;
+      const add = (p, rid) => { const k = `${p.id}|${rid}`; if (!map.has(k)) map.set(k, why); };
+      const sel = e.players || [], inSel = (p) => sel.includes(p.id);
+      if (e.kind === "pair") {
+        if (e.none) ps.forEach((p) => team("outsider").forEach((rid) => add(p, rid)));
+        else if (e.role) ps.filter((p) => !inSel(p)).forEach((p) => add(p, e.role));
+      } else if (e.kind === "is" && e.role && sel[0]) {
+        ps.forEach((p) => (p.id === sel[0] ? roles.forEach((r) => r.id !== e.role && add(p, r.id)) : add(p, e.role)));
+      } else if (e.kind === "among" && sel[0] && e.roles?.filter(Boolean).length) {
+        ps.filter(inSel).forEach((p) => roles.forEach((r) => !e.roles.includes(r.id) && add(p, r.id)));
+      } else if (e.kind === "notdemon" || (e.kind === "yesno" && e.demon && e.yes === false)) {
+        ps.filter(inSel).forEach((p) => demons.forEach((rid) => add(p, rid)));
+      } else if (e.kind === "demonamong" && sel.length) {
+        ps.filter((p) => !inSel(p)).forEach((p) => demons.forEach((rid) => add(p, rid)));
+      } else if (e.kind === "good") {
+        ps.filter(inSel).forEach((p) => evil.forEach((rid) => add(p, rid)));
+      }
+    }
+    return (dedCache = map);
+  };
+  L.deducedWhy = (p, rid) => (p.explore ? null : L.deductions().get(`${p.id}|${rid}`) || null);
 
   // Voisins vivants les plus proches (gauche = sens anti-horaire, droite = sens horaire).
   L.neighbours = (p) => {

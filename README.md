@@ -32,6 +32,7 @@ node --test tests/
 
 - `app/index.html`, `app/styles.css` — page et styles.
 - `app/js/logic.js` — logique de déduction pure (sans interface), testée dans `tests/`.
+- `app/js/infos.js` — formats d'infos structurées et modèle par rôle (Lavandière, Empathe, Voyante…).
 - `app/js/context.js` — état, sauvegarde, scénario courant.
 - `app/js/view-*.js`, `panel.js`, `dialogs.js` — onglets Table, Grille, Rôles, Journal, fiche joueur, fenêtres.
 - `app/js/main.js` — point d'entrée.
