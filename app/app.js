@@ -603,7 +603,27 @@
         ${ps.length ? form : `<p class="intro">Ajoutez d'abord des joueurs.</p>`}
         <div class="row"><button type="button" class="primary" id="j-add">Ajouter au journal</button><span class="muted small" id="j-msg"></span></div>
       </div>
+      ${renderJournalNight(j.phase, ps)}
       <div class="timeline">${timeline}</div>`;
+  }
+
+  // Ordre de nuit de la phase en cours (nuits seulement), avec les joueurs
+  // qui ont annoncé / confirmé chaque rôle. Rôles sans candidat estompés.
+  let journalNightOpen = true;
+  function renderJournalNight(phase, ps) {
+    if (phase % 2) return "";
+    const who = (r) => {
+      const l = ps.filter((p) => confirmedOf(p) === r.id || p.claim === r.id).map((p) =>
+        `${esc(p.name)}${confirmedOf(p) === r.id ? " ✓" : ""}${p.dead ? " †" : ""}`);
+      return l.length ? `<span class="who">${l.join(" · ")}</span>` : "";
+    };
+    const dimmed = (r) => ps.length > 0 && !ps.some((p) => isPossible(p, r));
+    return `
+      <details class="panel j-night" ${journalNightOpen ? "open" : ""}>
+        <summary><h2>Ordre de nuit — ${phaseName(phase)}</h2></summary>
+        <ol class="night-list">${nightItems(phase === 0 ? "first" : "other", dimmed, who)}</ol>
+        <p class="hint">Estompé : aucun joueur ne peut plus avoir ce rôle. Sous chaque rôle : les joueurs qui l'ont annoncé (✓ = confirmé).</p>
+      </details>`;
   }
 
   function addEvent() {
@@ -752,6 +772,7 @@
     draft[k] = e.target.type === "checkbox" ? e.target.checked : e.target.value;
   };
   jv.addEventListener("input", draftField);
+  jv.addEventListener("toggle", (e) => { if (e.target.classList?.contains("j-night")) journalNightOpen = e.target.open; }, true);
   jv.addEventListener("change", (e) => {
     draftField(e);
     if (e.target.dataset.d === "player" && draft.type === "info" && !draft.text) {
@@ -946,21 +967,27 @@
     if (!picks.length) return "Reçoit une information.";
     return `Choisit ${picks.join(" ou ")}.`;
   }
-  function renderNight() {
-    const poss = new Set(possible(cur()).map((r) => r.id));
+  // Étapes de nuit du scénario (key = "first" | "other"), en <li>.
+  //   dimmed(r)  : true pour estomper le rôle
+  //   extra(r)   : HTML ajouté sous le texte (ex. joueurs concernés)
+  function nightItems(key, dimmed, extra = () => "") {
     // Ordre calculé : numéros d'ordre des rôles du scénario + étapes spéciales.
     const steps = [
-      ...ROLE_LIST.filter((r) => r.night?.[night] != null).map((r) => ({ order: r.night[night], role: r })),
-      ...(SCRIPT.hideNightSpecials ? [] : NIGHT_SPECIALS[night] || []),
-      ...(SCRIPT.nightExtras?.[night] || []),
+      ...ROLE_LIST.filter((r) => r.night?.[key] != null).map((r) => ({ order: r.night[key], role: r })),
+      ...(SCRIPT.hideNightSpecials ? [] : NIGHT_SPECIALS[key] || []),
+      ...(SCRIPT.nightExtras?.[key] || []),
     ].sort((a, b) => a.order - b.order);
-    $("#night-list").innerHTML = steps.map((s) => {
+    return steps.map((s) => {
       if (!s.role) {
         return `<li><div class="ph">${esc(s.label[0])}</div><div><b>${esc(s.label)}</b><span>${esc(s.text)}</span></div></li>`;
       }
       const r = s.role;
-      return `<li class="${poss.has(r.id) ? "" : "dim"}">${icon(r.id, 36)}<div><b>${esc(r.name)}</b><span>${esc(nightText(r))}</span></div></li>`;
+      return `<li class="${dimmed(r) ? "dim" : ""}">${icon(r.id, 36)}<div><b>${esc(r.name)}</b><span>${esc(nightText(r))}</span>${extra(r)}</div></li>`;
     }).join("") || `<li><div></div><div><span>Personne ne se réveille cette nuit-là dans ce scénario.</span></div></li>`;
+  }
+  function renderNight() {
+    const poss = new Set(possible(cur()).map((r) => r.id));
+    $("#night-list").innerHTML = nightItems(night, (r) => !poss.has(r.id));
   }
   document.querySelectorAll("[data-night]").forEach((t) => t.addEventListener("click", () => {
     night = t.dataset.night;
