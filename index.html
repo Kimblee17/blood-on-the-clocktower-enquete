@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Veiled Threats · Enquête</title>
+  <meta name="description" content="Outil d'enquête pour Blood on the Clocktower — script Veiled Threats.">
+  <meta name="theme-color" content="#16121c">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="" width="32" height="32">
+      <div>
+        <h1>Veiled Threats</h1>
+        <p>Carnet d'enquête</p>
+      </div>
+    </div>
+    <nav class="top-actions">
+      <button type="button" class="ghost" data-open="night-dialog">Ordre de nuit</button>
+      <button type="button" class="ghost" data-open="rules-dialog">Règles &amp; répartition</button>
+      <button type="button" class="ghost danger" id="new-game">Nouvelle partie</button>
+    </nav>
+  </header>
+
+  <section class="players" aria-label="Joueurs">
+    <div class="player-strip" id="player-strip"></div>
+  </section>
+
+  <div class="layout">
+    <main>
+      <section class="filters" aria-label="Filtres">
+        <div class="filter-row">
+          <div class="multi" id="f-wake"></div>
+          <div class="multi" id="f-choice"></div>
+          <div class="multi" id="f-team"></div>
+        </div>
+        <div class="filter-row meta">
+          <span class="count" id="count"></span>
+          <label class="switch"><input type="checkbox" id="hide-excluded"> Masquer les rôles écartés</label>
+          <button type="button" class="link" id="reset-filters">Réinitialiser les filtres</button>
+        </div>
+        <p class="hint">Les choix d'une même liste s'additionnent (OU), les listes se combinent (ET). Touchez un rôle pour l'écarter manuellement.</p>
+      </section>
+
+      <section id="roles" class="roles" aria-live="polite"></section>
+    </main>
+
+    <aside class="side">
+      <section class="panel" id="player-panel"></section>
+      <section class="panel">
+        <h2>Notes libres</h2>
+        <textarea id="global-notes" rows="10" placeholder="Suspicions, claims, votes, morts de la nuit…"></textarea>
+        <p class="saved" id="saved-indicator">Enregistré sur cet appareil</p>
+      </section>
+    </aside>
+  </div>
+
+  <dialog id="night-dialog">
+    <form method="dialog" class="dialog-head">
+      <h2>Ordre de nuit</h2>
+      <button class="ghost" aria-label="Fermer">Fermer</button>
+    </form>
+    <div class="tabs">
+      <button type="button" class="tab active" data-night="first">Première nuit</button>
+      <button type="button" class="tab" data-night="other">Autres nuits</button>
+    </div>
+    <ol class="night-list" id="night-list"></ol>
+  </dialog>
+
+  <dialog id="rules-dialog">
+    <form method="dialog" class="dialog-head">
+      <h2>Règles &amp; répartition</h2>
+      <button class="ghost" aria-label="Fermer">Fermer</button>
+    </form>
+    <h3>Fabuleux &amp; règles maison</h3>
+    <ul class="fabled" id="fabled"></ul>
+    <h3>Répartition</h3>
+    <label class="inline">Nombre de joueurs
+      <input type="number" id="player-count" min="5" max="15" value="8">
+    </label>
+    <div class="compo" id="compo"></div>
+    <p class="hint">Fang Gu : +1 Étranger. Vigormortis : −1 Étranger.</p>
+  </dialog>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
