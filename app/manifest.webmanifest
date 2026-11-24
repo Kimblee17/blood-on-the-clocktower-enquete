@@ -1,7 +1,7 @@
 {
-  "name": "Veiled Threats · Carnet d'enquête",
+  "name": "Blood on the Clocktower · Carnet d'enquête",
   "short_name": "Enquête BotC",
-  "description": "Outil d'enquête pour Blood on the Clocktower — script Veiled Threats.",
+  "description": "Outil d'enquête pour Blood on the Clocktower.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

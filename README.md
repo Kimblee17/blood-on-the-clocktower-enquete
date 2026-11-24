@@ -22,6 +22,15 @@ git push origin "$(git subtree split --prefix app main):refs/heads/gh-pages" --f
 
 ## Structure
 
-- `app/data.js` — rôles, catégories de réveil / choix, ordre de nuit, règles maison, répartition.
-- `app/app.js` — logique (filtres, joueurs, notes, sauvegarde).
-- `app/sw.js` — cache hors ligne. Changer `CACHE` après une mise à jour des fichiers.
+- `app/roles.js` — base de données des rôles (capacité, réveil, choix), partagée par tous les scénarios, + répartition standard.
+- `app/scripts.js` — les scénarios : liste de rôles, règles maison, ordre de nuit.
+- `app/app.js` — logique (sélecteur de scénario, filtres, joueurs, notes, sauvegarde).
+- `app/sw.js` — cache hors ligne. Changer `CACHE` après chaque mise à jour.
+
+## Ajouter un scénario
+
+1. Pour chaque rôle absent de `app/roles.js`, ajouter une entrée (`name`, `en`, `team`, `ability`, `wake`, `choice`).
+   Les rôles dont le comportement dépend des autres (Alchimiste, Lunatique, Ivrogne…) utilisent `derive` au lieu de `wake` / `choice`.
+2. Facultatif : ajouter l'icône `app/icons/roles/<id>.jpg` (128×128) et l'ajouter à la liste de `app/sw.js`. Sans icône, l'initiale du rôle s'affiche.
+3. Ajouter le scénario dans `app/scripts.js` (`id`, `name`, `roles`, et si besoin `rules`, `roleNotes`, `setupNote`, `nightOrder`).
+4. Incrémenter `CACHE` dans `app/sw.js`, puis publier.
