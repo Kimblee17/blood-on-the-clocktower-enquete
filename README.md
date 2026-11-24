@@ -14,20 +14,30 @@ Puis ouvrir http://localhost:8765.
 
 Version en ligne : https://kimblee17.github.io/blood-on-the-clocktower-enquete/ — l'ouvrir sur le téléphone puis « Ajouter à l'écran d'accueil ». L'app fonctionne ensuite hors ligne ; les données restent sur l'appareil (localStorage).
 
-Mettre à jour le site après une modification (penser à changer `CACHE` dans `app/sw.js`) :
+Publier une nouvelle version (met à jour la version du cache hors ligne, lance les tests, puis publie) :
 
 ```powershell
-git push origin "$(git subtree split --prefix app main):refs/heads/gh-pages" --force
+python -I tools/publish.py --push
+```
+
+Sans `--push`, le script met seulement `app/sw.js` à jour et lance les tests.
+
+## Tests
+
+```powershell
+node --test tests/
 ```
 
 ## Structure
 
-- `app/roles.js` — base de données des rôles (**générée**, voir plus bas).
-- `app/scripts_imported.js` — scénarios importés (**généré**).
-- `app/scripts.js` — scénarios écrits à la main (Veiled Threats) et compléments aux scénarios importés (ordre de nuit, notes, règles de répartition).
-- `app/app.js` — logique (sélecteur de scénario, filtres, joueurs, notes, sauvegarde).
-- `app/sw.js` — cache hors ligne. Changer `CACHE` après chaque mise à jour.
-- `tools/import_bambi.py` — import depuis le wiki BotC FR.
+- `app/index.html`, `app/styles.css` — page et styles.
+- `app/js/logic.js` — logique de déduction pure (sans interface), testée dans `tests/`.
+- `app/js/context.js` — état, sauvegarde, scénario courant.
+- `app/js/view-*.js`, `panel.js`, `dialogs.js` — onglets Table, Grille, Rôles, Journal, fiche joueur, fenêtres.
+- `app/js/main.js` — point d'entrée.
+- `app/roles.js`, `app/scripts_imported.js` — données **générées** par `tools/import_bambi.py`.
+- `app/scripts.js` — scénarios écrits à la main (Veiled Threats) et compléments.
+- `app/sw.js` — cache hors ligne (version et liste des fichiers écrites par `tools/publish.py`).
 
 ## Importer / mettre à jour les rôles et scénarios
 

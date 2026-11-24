@@ -415,16 +415,8 @@ def main():
         f.write("// Généré par tools/import_bambi.py — ne pas modifier à la main.\n")
         f.write("// Source : wiki BotC FR de BambiPotato (CC BY 4.0).\n")
         f.write("const SCRIPTS_IMPORTED = " + json.dumps(scripts, ensure_ascii=False, indent=2) + ";\n")
-    # Liste des icônes à mettre en cache hors ligne.
-    sw_path = os.path.join(APP, "sw.js")
-    sw = open(sw_path, encoding="utf-8").read()
-    icons = sorted(k for k, v in ok.items() if v)
-    block = "// ICONS-START\nconst ICONS = " + json.dumps(icons) + ";\n// ICONS-END"
-    sw = re.sub(r"// ICONS-START.*?// ICONS-END", lambda _: block, sw, flags=re.S)
-    with open(sw_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(sw)
     print(f"{len(chars)} rôles, {len(scripts)} scénarios, {sum(ok.values())} icônes.")
-    print("Pensez à incrémenter CACHE dans app/sw.js avant de publier.")
+    print("Publiez ensuite avec : python -I tools/publish.py --push")
 
 
 if __name__ == "__main__":

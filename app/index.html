@@ -25,6 +25,7 @@
       </div>
     </div>
     <nav class="top-actions">
+      <button type="button" class="ghost" id="discreet" aria-pressed="false" title="Cacher l'écran à vos voisins">Masquer</button>
       <button type="button" class="ghost" data-open="help-dialog">Aide de jeu</button>
       <button type="button" class="ghost" data-open="games-dialog">Parties</button>
       <button type="button" class="ghost danger" id="new-game">Nouvelle partie</button>
@@ -150,11 +151,37 @@
     <textarea id="summary-text" rows="16" readonly></textarea>
   </dialog>
 
+  <dialog id="quick-dialog" aria-label="Menu rapide du joueur">
+    <form method="dialog" class="dialog-head">
+      <span class="muted small">Menu rapide</span>
+      <button class="ghost" aria-label="Fermer">Fermer</button>
+    </form>
+    <div id="quick-body"></div>
+  </dialog>
+
+  <dialog id="paste-dialog">
+    <form method="dialog" class="dialog-head">
+      <h2>Coller la liste des joueurs</h2>
+      <button class="ghost" aria-label="Fermer">Fermer</button>
+    </form>
+    <textarea id="paste-text" rows="10" placeholder="Léa&#10;Tom&#10;Marc&#10;…"></textarea>
+    <p class="hint" id="paste-info"></p>
+    <div class="row">
+      <button type="button" class="primary" id="paste-add">Ajouter à la suite</button>
+      <button type="button" class="ghost danger" id="paste-replace">Remplacer les joueurs</button>
+    </div>
+  </dialog>
+
+  <button type="button" class="discreet-veil" id="discreet-veil" hidden>
+    <span>Écran masqué</span>
+    <small>Toucher pour afficher</small>
+  </button>
+
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="roles.js"></script>
   <script src="scripts_imported.js"></script>
   <script src="scripts.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
