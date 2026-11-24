@@ -1,0 +1,16 @@
+{
+  "name": "Veiled Threats · Carnet d'enquête",
+  "short_name": "Enquête BotC",
+  "description": "Outil d'enquête pour Blood on the Clocktower — script Veiled Threats.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#16121c",
+  "theme_color": "#16121c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
