@@ -56,6 +56,8 @@
     globalNotes: "",
     hideExcluded: false,
     playerCount: 8,
+    // Journal : phases N1, J1, N2, J2… (index pair = nuit, impair = jour).
+    journal: { phase: 0, last: 0, events: [] },
   });
 
   let state = load();
@@ -290,6 +292,12 @@
         <button type="button" class="ghost" data-move="1">Avancer →</button>
       </div>
       <label class="field">Rôles possibles (${poss.length})</label>${list}
+      ${(() => {
+        const h = playerHistory(p);
+        const ghost = p.dead ? `<p class="intro">Vote fantôme : ${ghostUsed(p) ? "<b>utilisé</b>" : "disponible"}</p>` : "";
+        return `<label class="field">Historique (journal)</label>${ghost}` +
+          (h.length ? `<ul class="history">${h.map((x) => `<li>${x}</li>`).join("")}</ul>` : `<p class="intro">Rien dans le journal pour l'instant.</p>`);
+      })()}
       <label class="field">Notes sur ce joueur<textarea id="p-notes" rows="5" placeholder="Ce qu'il dit, ses votes, ses infos…">${esc(p.notes)}</textarea></label>
       <div class="row"><button type="button" class="ghost danger" id="p-delete">Supprimer ce joueur</button></div>`;
   }
@@ -379,6 +387,148 @@
         La ligne « Candidats » compte les joueurs qui peuvent encore avoir ce rôle (0 = rôle sans doute absent).</p>`;
   }
 
+  // ---------- Journal de partie ----------
+  // Évènements : { id, phase, type, ... }
+  //   info  : player, text, targets[]      — info reçue / annoncée
+  //   death : player, cause (night|exec|other)
+  //   nom   : by, target, voters[], executed
+  //   note  : text
+  const J = () => state.journal;
+  const phaseName = (i) => `${i % 2 ? "Jour" : "Nuit"} ${Math.floor(i / 2) + 1}`;
+  const phaseShort = (i) => `${i % 2 ? "J" : "N"}${Math.floor(i / 2) + 1}`;
+  const pname = (id) => state.profiles.find((p) => p.id === id)?.name || "(joueur supprimé)";
+  const ordered = () => J().events.map((e, k) => ({ e, k })).sort((a, b) => a.e.phase - b.e.phase || a.k - b.k).map((x) => x.e);
+  const killOf = (e) => (e.type === "death" ? e.player : e.type === "nom" && e.executed ? e.target : null);
+  // Joueurs morts avant un évènement (ou à la fin si ev est absent).
+  function deadBefore(ev) {
+    const dead = new Set();
+    for (const e of ordered()) { if (e === ev) break; const k = killOf(e); if (k) dead.add(k); }
+    return dead;
+  }
+  const ghostUsed = (p) => J().events.some((e) => e.type === "nom" && e.voters.includes(p.id) && deadBefore(e).has(p.id));
+  const CAUSE = { night: "pendant la nuit", exec: "par exécution", other: "" };
+
+  function evText(e) {
+    const b = (id) => `<b>${esc(pname(id))}</b>`;
+    if (e.type === "info") {
+      const t = e.targets.length ? ` <span class="muted">→ ${e.targets.map(pname).map(esc).join(", ")}</span>` : "";
+      return `${e.player ? b(e.player) + " : " : ""}${esc(e.text)}${t}`;
+    }
+    if (e.type === "death") return `${b(e.player)} meurt ${CAUSE[e.cause] || ""}`.trim() + ".";
+    if (e.type === "nom") {
+      const dead = deadBefore(e);
+      const alive = players().filter((p) => !dead.has(p.id)).length;
+      const need = Math.ceil(alive / 2);
+      const voters = e.voters.map((v) => esc(pname(v)) + (dead.has(v) ? " †" : "")).join(", ");
+      return `${b(e.by)} nomine ${b(e.target)} — <b>${e.voters.length}</b> vote${e.voters.length > 1 ? "s" : ""} (${need} requis)` +
+        (voters ? ` <span class="muted">: ${voters}</span>` : "") +
+        (e.executed ? ` <span class="tag evil">Exécuté</span>` : "");
+    }
+    return esc(e.text);
+  }
+  const TYPE_LABEL = { info: "Info", death: "Mort", nom: "Nomination", note: "Note" };
+
+  let draft = { type: "info", player: "", text: "", targets: [], cause: "night", by: "", target: "", voters: [], executed: false };
+  const resetDraft = (type) => { draft = { ...draft, type, player: "", text: "", targets: [], by: "", target: "", voters: [], executed: false, cause: J().phase % 2 ? "exec" : "night" }; };
+
+  function renderJournal() {
+    const j = J(), ps = players();
+    const opts = (sel) => `<option value="">— Choisir —</option>` +
+      ps.map((p) => `<option value="${p.id}" ${sel === p.id ? "selected" : ""}>${esc(p.name)}${p.dead ? " †" : ""}</option>`).join("");
+    const chips = (attr, selected, mark) => `<div class="pick">${ps.map((p) =>
+      `<button type="button" class="pk ${selected.includes(p.id) ? "on" : ""} ${mark ? mark(p) : ""}" ${attr}="${p.id}">${esc(p.name)}${p.dead ? " †" : ""}</button>`).join("")}</div>`;
+
+    let form = "";
+    if (draft.type === "info") form = `
+      <label class="field">Qui ?<select data-d="player">${opts(draft.player)}</select></label>
+      <label class="field">Information<textarea data-d="text" rows="2" placeholder="Ex. : Empathe, 1 voisin mauvais · Tom ou Marc est Voyante">${esc(draft.text)}</textarea></label>
+      <label class="field">Joueurs concernés</label>${chips("data-tg", draft.targets)}`;
+    if (draft.type === "death") form = `
+      <label class="field">Qui ?<select data-d="player">${opts(draft.player)}</select></label>
+      <label class="field">Cause<select data-d="cause">
+        <option value="night" ${draft.cause === "night" ? "selected" : ""}>Pendant la nuit</option>
+        <option value="exec" ${draft.cause === "exec" ? "selected" : ""}>Par exécution</option>
+        <option value="other" ${draft.cause === "other" ? "selected" : ""}>Autre (capacité de jour…)</option>
+      </select></label>`;
+    if (draft.type === "nom") {
+      const dead = deadBefore(null);
+      const need = Math.ceil(ps.filter((p) => !dead.has(p.id)).length / 2);
+      form = `
+      <div class="two">
+        <label class="field">Nominateur<select data-d="by">${opts(draft.by)}</select></label>
+        <label class="field">Nominé<select data-d="target">${opts(draft.target)}</select></label>
+      </div>
+      <label class="field">Votants <span class="muted">— ${draft.voters.length} vote(s), ${need} requis</span></label>
+      ${chips("data-vt", draft.voters, (p) => (p.dead && ghostUsed(p) ? "spent" : ""))}
+      <label class="switch" style="margin-top:10px"><input type="checkbox" data-d="executed" ${draft.executed ? "checked" : ""}> Exécuté</label>`;
+    }
+    if (draft.type === "note") form = `<label class="field">Note<textarea data-d="text" rows="3" placeholder="Ce qui s'est dit, une intuition…">${esc(draft.text)}</textarea></label>`;
+
+    const phases = Array.from({ length: j.last + 1 }, (_, i) =>
+      `<button type="button" class="ph-chip ${i === j.phase ? "on" : ""} ${i % 2 ? "day" : "night"}" data-phase="${i}">${phaseShort(i)}</button>`).join("");
+    const timeline = Array.from({ length: j.last + 1 }, (_, i) => j.last - i).map((i) => {
+      const evs = j.events.filter((e) => e.phase === i);
+      return `<section class="ph-block ${i === j.phase ? "current" : ""}">
+        <h3>${phaseName(i)}</h3>
+        ${evs.length ? `<ul class="events">${evs.map((e) => `
+          <li class="ev ev-${e.type}"><span class="tag">${TYPE_LABEL[e.type]}</span><span class="txt">${evText(e)}</span>
+          <button type="button" class="del" data-del="${e.id}" aria-label="Supprimer">×</button></li>`).join("")}</ul>`
+          : `<p class="muted small">Rien de noté.</p>`}
+      </section>`;
+    }).join("");
+
+    $("#journal-view").innerHTML = `
+      <div class="phase-bar">
+        <div class="phases">${phases}</div>
+        <button type="button" class="ghost" id="j-next">Passer au ${phaseName(j.last + 1).toLowerCase()} →</button>
+      </div>
+      <div class="panel j-form">
+        <h2>Ajouter — ${phaseName(j.phase)}</h2>
+        <div class="segmented">${Object.entries(TYPE_LABEL).map(([k, l]) =>
+          `<button type="button" class="seg ${draft.type === k ? "on" : ""}" data-jtype="${k}">${l}</button>`).join("")}</div>
+        ${ps.length ? form : `<p class="intro">Ajoutez d'abord des joueurs.</p>`}
+        <div class="row"><button type="button" class="primary" id="j-add">Ajouter au journal</button><span class="muted small" id="j-msg"></span></div>
+      </div>
+      <div class="timeline">${timeline}</div>`;
+  }
+
+  function addEvent() {
+    const d = draft, e = { id: uid(), phase: J().phase, type: d.type };
+    const msg = (t) => { $("#j-msg").textContent = t; };
+    if (d.type === "info") { if (!d.text.trim()) return msg("Écrivez l'information."); Object.assign(e, { player: d.player, text: d.text.trim(), targets: d.targets }); }
+    if (d.type === "death") { if (!d.player) return msg("Choisissez le joueur."); Object.assign(e, { player: d.player, cause: d.cause }); }
+    if (d.type === "nom") { if (!d.by || !d.target) return msg("Choisissez nominateur et nominé."); Object.assign(e, { by: d.by, target: d.target, voters: d.voters, executed: d.executed }); }
+    if (d.type === "note") { if (!d.text.trim()) return msg("Écrivez la note."); e.text = d.text.trim(); }
+    J().events.push(e);
+    const k = killOf(e);
+    if (k) { const p = state.profiles.find((x) => x.id === k); if (p) p.dead = true; }
+    resetDraft(d.type);
+    save(); render();
+  }
+
+  function deleteEvent(id) {
+    const e = J().events.find((x) => x.id === id);
+    if (!e || !confirm("Supprimer cet évènement du journal ?")) return;
+    J().events = J().events.filter((x) => x !== e);
+    const k = killOf(e);
+    if (k) { const p = state.profiles.find((x) => x.id === k); if (p) p.dead = J().events.some((x) => killOf(x) === k); }
+    save(); render();
+  }
+
+  // Évènements du journal qui concernent un joueur.
+  function playerHistory(p) {
+    return ordered().flatMap((e) => {
+      const ph = `<b>${phaseShort(e.phase)}</b> `;
+      if (e.type === "info" && (e.player === p.id || e.targets.includes(p.id))) return [ph + evText(e)];
+      if (e.type === "death" && e.player === p.id) return [ph + evText(e)];
+      if (e.type === "nom") {
+        if (e.by === p.id || e.target === p.id) return [ph + evText(e)];
+        if (e.voters.includes(p.id)) return [`${ph}A voté pour la nomination de <b>${esc(pname(e.target))}</b>${deadBefore(e).has(p.id) ? " (vote fantôme)" : ""}.`];
+      }
+      return [];
+    });
+  }
+
   function renderView() {
     const v = state.view;
     document.querySelectorAll("[data-view]").forEach((b) => {
@@ -388,6 +538,8 @@
     $("#roles-view").hidden = v !== "roles";
     $("#table-view").hidden = v !== "table";
     $("#grid-view").hidden = v !== "grid";
+    $("#journal-view").hidden = v !== "journal";
+    if (v === "journal") renderJournal();
     if (v === "table") renderTable();
     if (v === "grid") renderGrid();
     if (v === "roles") renderRoles();
@@ -430,6 +582,46 @@
     if (e.target.closest("#add-seat")) return addPlayer();
     const seat = e.target.closest(".seat");
     if (seat) select(seat.dataset.id);
+  });
+
+  // Journal
+  const jv = $("#journal-view");
+  jv.addEventListener("click", (e) => {
+    const t = e.target.closest("button");
+    if (!t) return;
+    if (t.dataset.jtype) { resetDraft(t.dataset.jtype); return renderJournal(); }
+    if (t.dataset.phase) {
+      J().phase = Number(t.dataset.phase);
+      resetDraft(J().phase % 2 ? "nom" : "info");
+      save(); return renderJournal();
+    }
+    if (t.id === "j-next") {
+      J().last += 1; J().phase = J().last;
+      resetDraft(J().phase % 2 ? "nom" : "info");
+      save(); return renderJournal();
+    }
+    if (t.dataset.tg || t.dataset.vt) {
+      const key = t.dataset.tg ? "targets" : "voters", id = t.dataset.tg || t.dataset.vt;
+      draft[key] = draft[key].includes(id) ? draft[key].filter((x) => x !== id) : [...draft[key], id];
+      return renderJournal();
+    }
+    if (t.id === "j-add") return addEvent();
+    if (t.dataset.del) return deleteEvent(t.dataset.del);
+  });
+  const draftField = (e) => {
+    const k = e.target.dataset.d;
+    if (!k) return;
+    draft[k] = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+  };
+  jv.addEventListener("input", draftField);
+  jv.addEventListener("change", (e) => {
+    draftField(e);
+    if (e.target.dataset.d === "player" && draft.type === "info" && !draft.text) {
+      // Pré-remplit avec le rôle annoncé ou confirmé du joueur.
+      const p = state.profiles.find((x) => x.id === draft.player);
+      const r = p && (roleById[confirmedOf(p)] || roleById[p.claim]);
+      if (r) { draft.text = `${r.name} : `; renderJournal(); jv.querySelector("textarea[data-d=text]")?.focus(); }
+    }
   });
 
   $("#grid-view").addEventListener("click", (e) => {
@@ -500,9 +692,10 @@
   gn.addEventListener("input", () => { state.globalNotes = gn.value; save(); });
 
   $("#new-game").addEventListener("click", () => {
-    if (!confirm("Nouvelle partie : effacer filtres, notes, morts et rôles annoncés ?\nLes noms des joueurs sont conservés.")) return;
+    if (!confirm("Nouvelle partie : effacer filtres, notes, journal, morts et rôles ?\nLes noms des joueurs sont conservés.")) return;
     state.profiles = state.profiles.map((p) => ({ ...newProfile(p.name, p.explore), id: p.id }));
     state.globalNotes = ""; gn.value = "";
+    state.journal = { phase: 0, last: 0, events: [] };
     state.current = "explore";
     save(); render();
   });
@@ -558,6 +751,7 @@
   pc.value = state.playerCount;
   pc.addEventListener("input", renderCompo);
 
+  resetDraft(J().phase % 2 ? "nom" : "info");
   renderScriptSelect();
   renderRules();
   renderCompo();
