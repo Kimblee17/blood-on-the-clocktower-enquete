@@ -19,38 +19,53 @@
       <img src="icons/icon-192.png" alt="" width="32" height="32">
       <div>
         <h1>Carnet d'enquête</h1>
-        <label class="script-pick">Scénario
-          <select id="script-select" aria-label="Scénario"></select>
-        </label>
+        <span class="script-name" id="script-name"></span>
       </div>
     </div>
-    <nav class="top-actions">
+    <div class="top-actions">
       <button type="button" class="ghost" id="discreet" aria-pressed="false" title="Cacher l'écran à vos voisins">Masquer</button>
-      <button type="button" class="ghost" data-open="help-dialog">Aide de jeu</button>
-      <button type="button" class="ghost" data-open="games-dialog">Parties</button>
-      <button type="button" class="ghost danger" id="new-game">Nouvelle partie</button>
-    </nav>
+      <div class="more">
+        <button type="button" class="ghost icon-btn" id="more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Plus d'options">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
+        <div class="more-menu" id="more-menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-open="help-dialog">Aide de jeu</button>
+          <button type="button" role="menuitem" data-open="games-dialog">Parties archivées</button>
+          <button type="button" role="menuitem" id="new-game">Nouvelle partie…</button>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <section class="players" aria-label="Joueurs">
-    <div class="player-strip" id="player-strip"></div>
-  </section>
+  <nav class="views" role="tablist" aria-label="Vue">
+    <button type="button" role="tab" data-view="table">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><circle cx="12" cy="3.5" r="1.6"/><circle cx="20.5" cy="12" r="1.6"/><circle cx="12" cy="20.5" r="1.6"/><circle cx="3.5" cy="12" r="1.6"/></svg>
+      <span class="lbl">Table</span>
+    </button>
+    <!-- Grille masquée pour l'instant (GRID_ENABLED dans main.js) -->
+    <button type="button" role="tab" data-view="grid" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 9.5h17M3.5 15h17M9.5 3.5v17M15 3.5v17"/></svg>
+      <span class="lbl">Grille</span>
+    </button>
+    <button type="button" role="tab" data-view="roles">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="12" height="16" rx="2"/><path d="M8 20.5h10a2 2 0 0 0 2-2v-13"/><path d="M7.5 8h5M7.5 11.5h5"/></svg>
+      <span class="lbl">Rôles</span>
+    </button>
+    <button type="button" role="tab" data-view="journal">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17H6z"/><path d="M9 8h6M9 11.5h6M9 15h4"/></svg>
+      <span class="lbl">Journal</span>
+    </button>
+  </nav>
 
-  <div class="layout">
-    <main>
-      <div class="views" role="tablist" aria-label="Vue">
-        <button type="button" role="tab" data-view="table">Table</button>
-        <button type="button" role="tab" data-view="grid">Grille</button>
-        <button type="button" role="tab" data-view="roles">Rôles</button>
-        <button type="button" role="tab" data-view="journal">Journal</button>
-      </div>
+  <main class="layout">
+    <section id="table-view" class="view" aria-label="Table des joueurs" hidden></section>
+    <section id="grid-view" class="view" aria-label="Grille de déduction" hidden></section>
 
-      <section id="table-view" aria-label="Table des joueurs" hidden></section>
-      <section id="grid-view" aria-label="Grille de déduction" hidden></section>
-      <section id="journal-view" aria-label="Journal de partie" hidden></section>
-
-      <div id="roles-view" hidden>
+    <div id="roles-view" class="view" hidden>
       <section class="filters" aria-label="Filtres">
+        <label class="for-player">Rôles possibles pour
+          <select id="roles-for"></select>
+        </label>
         <div class="filter-row search-row">
           <input type="search" id="role-search" placeholder="Rechercher un rôle…" aria-label="Rechercher un rôle">
           <button type="button" class="ghost mobile-only" id="toggle-filters" aria-expanded="false">Filtres</button>
@@ -67,20 +82,18 @@
           <button type="button" class="link" id="reset-filters">Réinitialiser les filtres</button>
         </div>
       </section>
-
       <section id="roles" class="roles" aria-live="polite"></section>
-      </div>
-    </main>
+    </div>
 
-    <aside class="side">
-      <section class="panel" id="player-panel"></section>
-      <section class="panel">
+    <div id="journal-wrap" class="view" hidden>
+      <section id="journal-view" aria-label="Journal de partie"></section>
+      <section class="panel notes-panel">
         <h2>Notes libres</h2>
-        <textarea id="global-notes" rows="10" placeholder="Suspicions, claims, votes, morts de la nuit…"></textarea>
+        <textarea id="global-notes" rows="8" placeholder="Suspicions, claims, votes, morts de la nuit…"></textarea>
         <p class="saved" id="saved-indicator">Enregistré sur cet appareil</p>
       </section>
-    </aside>
-  </div>
+    </div>
+  </main>
 
   <dialog id="help-dialog">
     <form method="dialog" class="dialog-head">
@@ -138,7 +151,7 @@
       <h2>Parties</h2>
       <button class="ghost" aria-label="Fermer">Fermer</button>
     </form>
-    <p class="hint">« Nouvelle partie » archive automatiquement la partie en cours. Ouvrir une partie archivée archive aussi celle en cours.</p>
+    <p class="hint">Une nouvelle partie range automatiquement la partie en cours ici. Ouvrir une partie archivée range aussi celle en cours.</p>
     <ul class="custom-list" id="games-list"></ul>
   </dialog>
 
@@ -151,12 +164,25 @@
     <textarea id="summary-text" rows="16" readonly></textarea>
   </dialog>
 
-  <dialog id="quick-dialog" aria-label="Menu rapide du joueur">
+  <dialog id="player-sheet" class="sheet" aria-label="Fiche du joueur">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div id="player-panel"></div>
+  </dialog>
+
+  <dialog id="newgame-dialog">
     <form method="dialog" class="dialog-head">
-      <span class="muted small">Menu rapide</span>
+      <h2>Nouvelle partie</h2>
       <button class="ghost" aria-label="Fermer">Fermer</button>
     </form>
-    <div id="quick-body"></div>
+    <label class="field">Scénario de la partie<select id="ng-script"></select></label>
+    <div class="choices" role="radiogroup" aria-label="Joueurs">
+      <label class="choice"><input type="radio" name="ng-mode" value="keep" checked>
+        <span><b>Garder les joueurs</b><small>Mêmes noms, même ordre à la table. Tout le reste repart de zéro.</small></span></label>
+      <label class="choice"><input type="radio" name="ng-mode" value="blank">
+        <span><b>Partie vierge</b><small>Aucun joueur, aucune note, aucun filtre.</small></span></label>
+    </div>
+    <p class="hint">Si elle contient des informations, la partie en cours est rangée dans « Parties archivées ».</p>
+    <div class="row"><button type="button" class="primary" id="ng-start">Commencer la partie</button></div>
   </dialog>
 
   <dialog id="paste-dialog">
@@ -173,6 +199,16 @@
   </dialog>
 
   <button type="button" class="discreet-veil" id="discreet-veil" hidden>
+    <svg class="veil-clock" viewBox="0 0 120 120" aria-hidden="true">
+      <circle class="face" cx="60" cy="60" r="52"/>
+      <g class="ticks">
+        <path d="M60 12v8M60 100v8M12 60h8M100 60h8"/>
+        <path d="M84 18.4l-3 5.2M101.6 36l-5.2 3M101.6 84l-5.2-3M84 101.6l-3-5.2M36 101.6l3-5.2M18.4 84l5.2-3M18.4 36l5.2 3M36 18.4l3 5.2"/>
+      </g>
+      <line class="hand hour" x1="60" y1="60" x2="60" y2="34"/>
+      <line class="hand minute" x1="60" y1="60" x2="60" y2="20"/>
+      <circle class="pivot" cx="60" cy="60" r="3.5"/>
+    </svg>
     <span>Écran masqué</span>
     <small>Toucher pour afficher</small>
   </button>

@@ -1,6 +1,6 @@
 // Onglet Journal : phases (nuits / jours) et évènements.
 import { app, commit, save } from "./context.js";
-import { $, esc, uid } from "./util.js";
+import { $, esc, toast, uid } from "./util.js";
 import { phaseName, phaseShort } from "./logic.js";
 import { describeInfo, KINDS, templateFor, TEMPLATES } from "./infos.js";
 
@@ -10,8 +10,12 @@ const CAUSE = { night: "pendant la nuit", exec: "par exécution", other: "" };
 
 const INFO_BLANK = { kind: "free", sourceRole: "", players: [], role: "", roles: ["", ""], num: null, yes: null, none: false };
 let draft = { type: "info", player: "", text: "", targets: [], cause: "night", by: "", target: "", voters: [], executed: false, ...INFO_BLANK };
+let formOpen = false; // formulaire d'ajout replié derrière « + Ajouter »
 export function resetDraft(type) {
   draft = { ...draft, ...INFO_BLANK, type: type || (L.J().phase % 2 ? "nom" : "info"), player: "", text: "", targets: [], by: "", target: "", voters: [], executed: false, cause: L.J().phase % 2 ? "exec" : "night" };
+  // Une info est le plus souvent la vôtre : « Qui ? » est pré-rempli avec « moi ».
+  const me = L.players().find((p) => p.me);
+  if (draft.type === "info" && me) { draft.player = me.id; applySource(); }
 }
 // Choisit le modèle d'info d'après le rôle annoncé / confirmé de la source.
 function applySource() {
@@ -74,7 +78,7 @@ function effectText(d, t) {
   }
 }
 
-function infoForm(opts, chips) {
+function infoForm(who, chips) {
   const d = draft, t = templateFor(d.sourceRole, d.kind);
   const roleOpts = (sel, team) => `<option value="">— Rôle —</option>` + TEAMS.filter((x) => !team || x.id === team).map((x) => {
     const rs = app.roles.filter((r) => r.team === x.id);
@@ -101,7 +105,7 @@ function infoForm(opts, chips) {
   const eff = effectText(d, t);
   const kindOpts = Object.entries(KINDS).map(([k, l]) => `<option value="${k}" ${d.kind === k ? "selected" : ""}>${esc(l)}</option>`).join("");
   return `
-    <label class="field">Qui ?<select data-d="player">${opts(d.player)}</select></label>
+    <label class="field">Qui ?</label>${who(d.player)}
     <label class="field">Format${d.sourceRole && TEMPLATES[d.sourceRole] ? ` <span class="muted">— modèle ${esc(roleName(d.sourceRole))}</span>` : ""}<select data-d="kind">${kindOpts}</select></label>
     ${fields.join("")}
     <label class="field">${d.kind === "free" ? "Information" : "Complément (facultatif)"}<textarea data-d="text" rows="2" placeholder="${d.kind === "free" ? "Ce qu'il a appris ou annoncé…" : "Précision, doute…"}">${esc(d.text)}</textarea></label>
@@ -112,13 +116,16 @@ export function renderJournal() {
   const j = L.J(), ps = L.players();
   const opts = (sel) => `<option value="">— Choisir —</option>` +
     ps.map((p) => `<option value="${p.id}" ${sel === p.id ? "selected" : ""}>${esc(p.name)}${p.dead ? " †" : ""}</option>`).join("");
+  // « Qui ? » : un seul joueur, choisi d'un toucher.
+  const who = (sel) => `<div class="pick">${ps.map((p) =>
+    `<button type="button" class="pk ${sel === p.id ? "on" : ""}" data-who="${p.id}" aria-pressed="${sel === p.id}">${esc(p.name)}${p.me ? " (moi)" : ""}${p.dead ? " †" : ""}</button>`).join("")}</div>`;
   const chips = (attr, selected, mark) => `<div class="pick">${ps.map((p) =>
     `<button type="button" class="pk ${selected.includes(p.id) ? "on" : ""} ${mark ? mark(p) : ""}" ${attr}="${p.id}">${esc(p.name)}${p.dead ? " †" : ""}</button>`).join("")}</div>`;
 
   let form = "";
-  if (draft.type === "info") form = infoForm(opts, chips);
+  if (draft.type === "info") form = infoForm(who, chips);
   if (draft.type === "death") form = `
-    <label class="field">Qui ?<select data-d="player">${opts(draft.player)}</select></label>
+    <label class="field">Qui ?</label>${who(draft.player)}
     <label class="field">Cause<select data-d="cause">
       <option value="night" ${draft.cause === "night" ? "selected" : ""}>Pendant la nuit</option>
       <option value="exec" ${draft.cause === "exec" ? "selected" : ""}>Par exécution</option>
@@ -155,13 +162,14 @@ export function renderJournal() {
         <button type="button" class="ghost" id="j-next">Passer au ${phaseName(j.last + 1).toLowerCase()} →</button>
       </div>
     </div>
-    <div class="panel j-form">
-      <h2>Ajouter — ${phaseName(j.phase)}</h2>
+    ${formOpen ? `<div class="panel j-form">
+      <div class="j-form-head"><h2>Ajouter — ${phaseName(j.phase)}</h2>
+        <button type="button" class="ghost" id="j-cancel">Annuler</button></div>
       <div class="segmented">${Object.entries(TYPE_LABEL).map(([k, l]) =>
         `<button type="button" class="seg ${draft.type === k ? "on" : ""}" data-jtype="${k}">${l}</button>`).join("")}</div>
       ${ps.length ? form : `<p class="intro">Ajoutez d'abord des joueurs.</p>`}
       <div class="row"><button type="button" class="primary" id="j-add">Ajouter au journal</button><span class="muted small" id="j-msg"></span></div>
-    </div>
+    </div>` : `<button type="button" class="primary j-open" id="j-open">+ Ajouter un évènement · ${phaseName(j.phase)}</button>`}
     <div class="timeline">${timeline}</div>`;
 }
 
@@ -186,7 +194,9 @@ function addEvent() {
   const k = L.killOf(e);
   if (k) { const p = app.state.profiles.find((x) => x.id === k); if (p) p.dead = true; }
   resetDraft(d.type);
+  formOpen = false;
   commit();
+  toast("Ajouté au journal.");
 }
 
 // Message d'erreur si l'info est incomplète, sinon "".
@@ -216,6 +226,13 @@ export function initJournal({ copySummary }) {
   jv.addEventListener("click", (e) => {
     const t = e.target.closest("button");
     if (!t) return;
+    if (t.id === "j-open") { formOpen = true; resetDraft(); return renderJournal(); }
+    if (t.id === "j-cancel") { formOpen = false; return renderJournal(); }
+    if (t.dataset.who) {
+      draft.player = draft.player === t.dataset.who ? "" : t.dataset.who;
+      if (draft.type === "info") applySource();
+      return renderJournal();
+    }
     if (t.dataset.jtype) { resetDraft(t.dataset.jtype); return renderJournal(); }
     if (t.dataset.phase) { L.J().phase = Number(t.dataset.phase); resetDraft(); save(); return renderJournal(); }
     if (t.id === "j-next") { L.J().last += 1; L.J().phase = L.J().last; resetDraft(); save(); return renderJournal(); }

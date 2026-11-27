@@ -1,6 +1,5 @@
 // Actions partagées entre plusieurs vues.
 import { app, commit, newProfile } from "./context.js";
-import { $ } from "./util.js";
 
 const L = app.L;
 
@@ -9,13 +8,11 @@ export function select(id) {
   commit();
 }
 
+// Nouveau joueur : sa fiche s'ouvre, nom prêt à être saisi.
 export function addPlayer(name) {
   const p = newProfile(name || `Joueur ${L.players().length + 1}`);
   app.state.profiles.push(p);
-  app.state.current = p.id;
-  commit();
-  const inp = $("#p-name");
-  if (inp && !name) { inp.focus(); inp.select(); }
+  app.openSheet(p.id, { focusName: !name });
 }
 
 // Ajoute plusieurs joueurs d'un coup, dans l'ordre donné.

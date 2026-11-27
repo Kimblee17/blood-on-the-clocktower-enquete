@@ -1,7 +1,7 @@
 // Fenêtres : Aide de jeu (ordre de nuit, règles, répartition, scénarios),
 // Parties (archives / nouvelle partie) et résumé à copier.
 import { app, allScripts, commit, GAME_KEYS, newProfile, save, useScript } from "./context.js";
-import { $, $$, esc, icon, toast, uid } from "./util.js";
+import { $, $$, closeDialog, esc, icon, toast, uid } from "./util.js";
 import { phaseName } from "./logic.js";
 import { evText, resetDraft, TYPE_LABEL } from "./view-journal.js";
 
@@ -62,10 +62,11 @@ function importScript(text, fallbackName) {
   if (!known.length) return msg("Aucun rôle reconnu dans ce scénario.");
   const sc = { id: `custom_${uid()}`, name: meta.name || fallbackName || "Scénario importé", author: meta.author || "", roles: known };
   app.state.customScripts.push(sc);
-  changeScript(sc.id);
+  save();
+  renderScriptSelect();
   renderCustom();
   $("#import-json").value = "";
-  msg(`« ${sc.name} » importé et sélectionné : ${known.length} rôles.${unknown.length ? ` Ignorés (voyageurs, Légendaires, inconnus) : ${unknown.join(", ")}.` : ""}`);
+  msg(`« ${sc.name} » importé : ${known.length} rôles. Choisissez-le dans « Nouvelle partie ».${unknown.length ? ` Ignorés (voyageurs, Légendaires, inconnus) : ${unknown.join(", ")}.` : ""}`);
 }
 function renderCustom() {
   $("#custom-scripts").innerHTML = app.state.customScripts.map((c) =>
@@ -74,18 +75,20 @@ function renderCustom() {
     || `<li class="muted">Aucun scénario importé.</li>`;
 }
 
-// ---------- Sélecteur de scénario ----------
+// ---------- Sélecteur de scénario (fenêtre Nouvelle partie) ----------
+// Une partie = un scénario : il ne se choisit qu'en commençant une partie.
 export function renderScriptSelect() {
   const opt = (s) => `<option value="${s.id}" ${s.id === app.script.id ? "selected" : ""}>${esc(s.name)}</option>`;
   const official = (s) => s.author === "The Pandemonium Institute";
   const mine = app.state.customScripts || [];
-  $("#script-select").innerHTML =
+  $("#script-name").textContent = app.script.name;
+  $("#ng-script").innerHTML =
     `<optgroup label="Éditions de base">${SCRIPTS.filter(official).map(opt).join("")}</optgroup>` +
     `<optgroup label="Scénarios personnalisés">${SCRIPTS.filter((s) => !official(s)).map(opt).join("")}</optgroup>` +
     (mine.length ? `<optgroup label="Mes scénarios">${mine.map(opt).join("")}</optgroup>` : "");
   document.title = `${app.script.name} · Enquête`;
 }
-export function changeScript(id) {
+function changeScript(id) {
   app.state.scriptId = id;
   useScript(id);
   renderScriptSelect(); renderRules();
@@ -188,18 +191,34 @@ export function initDialogs() {
     renderCustom();
   });
 
-  // Parties
-  $("#new-game").addEventListener("click", () => {
-    if (!confirm("Commencer une nouvelle partie ?\nLa partie en cours est archivée (menu « Parties ») et les noms des joueurs sont conservés.")) return;
+  // Nouvelle partie : scénario + garder les joueurs ou repartir de zéro.
+  const ng = $("#newgame-dialog");
+  app.openNewGame = (mode = "keep") => {
+    renderScriptSelect();
+    $("#ng-script").value = app.script.id;
+    const hasPlayers = L.players().length > 0;
+    ng.querySelector(`[name=ng-mode][value=${hasPlayers ? mode : "blank"}]`).checked = true;
+    ng.querySelector("[name=ng-mode][value=keep]").closest(".choice").hidden = !hasPlayers;
+    ng.showModal();
+  };
+  $("#new-game").addEventListener("click", () => app.openNewGame("keep"));
+  $("#ng-start").addEventListener("click", () => {
+    const blank = ng.querySelector("[name=ng-mode]:checked").value === "blank";
     archiveCurrent();
     const s = app.state;
-    s.profiles = s.profiles.map((p) => ({ ...newProfile(p.name, p.explore), id: p.id }));
+    s.scriptId = $("#ng-script").value;
+    s.profiles = blank
+      ? [newProfile("Exploration", true)]
+      : s.profiles.map((p) => ({ ...newProfile(p.name, p.explore), id: p.id }));
     s.globalNotes = "";
     s.journal = { phase: 0, last: 0, events: [] };
     s.notInPlay = [];
     s.current = "explore";
+    s.view = "table";
+    closeDialog(ng);
     afterGameSwap();
-    toast("Nouvelle partie commencée.");
+    window.scrollTo(0, 0);
+    toast(blank ? "Partie vierge commencée." : "Nouvelle partie commencée avec les mêmes joueurs.");
   });
   $("[data-open=games-dialog]").addEventListener("click", renderGames);
   $("#games-list").addEventListener("click", (e) => {
@@ -209,7 +228,7 @@ export function initDialogs() {
       app.state.archives = app.state.archives.filter((x) => x !== a);
       archiveCurrent();
       Object.assign(app.state, JSON.parse(JSON.stringify(a.game)));
-      $("#games-dialog").close();
+      closeDialog($("#games-dialog"));
       afterGameSwap();
       toast(`Partie « ${a.name} » ouverte.`);
     }
