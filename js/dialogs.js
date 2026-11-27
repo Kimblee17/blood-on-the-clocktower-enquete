@@ -80,12 +80,13 @@ function renderCustom() {
 export function renderScriptSelect() {
   const opt = (s) => `<option value="${s.id}" ${s.id === app.script.id ? "selected" : ""}>${esc(s.name)}</option>`;
   const official = (s) => s.author === "The Pandemonium Institute";
-  const mine = app.state.customScripts || [];
+  // Les scénarios importés rejoignent les scénarios personnalisés, triés par nom.
+  const custom = [...SCRIPTS.filter((s) => !official(s)), ...(app.state.customScripts || [])]
+    .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }));
   $("#script-name").textContent = app.script.name;
   $("#ng-script").innerHTML =
     `<optgroup label="Éditions de base">${SCRIPTS.filter(official).map(opt).join("")}</optgroup>` +
-    `<optgroup label="Scénarios personnalisés">${SCRIPTS.filter((s) => !official(s)).map(opt).join("")}</optgroup>` +
-    (mine.length ? `<optgroup label="Mes scénarios">${mine.map(opt).join("")}</optgroup>` : "");
+    `<optgroup label="Scénarios personnalisés">${custom.map(opt).join("")}</optgroup>`;
   document.title = `${app.script.name} · Enquête`;
 }
 function changeScript(id) {
