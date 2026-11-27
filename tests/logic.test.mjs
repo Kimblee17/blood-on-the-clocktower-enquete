@@ -212,3 +212,13 @@ test("description lisible des infos", async () => {
   assert.equal(describeInfo({ kind: "number", sourceRole: "empath", num: 1, players: ["x", "y"] }, names, rn), "1 voisin mauvais (Tom et Marc)");
   assert.equal(describeInfo({ kind: "yesno", sourceRole: "fortuneteller", players: ["x", "y"], yes: false, q: "Un Démon parmi eux ?" }, names, rn), "Tom et Marc — Un Démon parmi eux ? Non");
 });
+
+test("possibleGood : seuls les Villageois et Marginaux comptent", () => {
+  const { L, a, r } = game("trouble_brewing");
+  const good = L.possibleGood(a);
+  assert.ok(good.length > 0);
+  assert.ok(good.every((x) => x.team === "townsfolk" || x.team === "outsider"));
+  assert.ok(!good.some((x) => x.id === r.imp.id));
+  a.team = ["minion", "demon"];
+  assert.equal(L.possibleGood(a).length, 0);
+});

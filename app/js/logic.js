@@ -67,6 +67,9 @@ export function createLogic(ctx) {
   };
   L.isPossible = (p, r) => { const s = L.cellState(p, r); return s === "yes" || s === "maybe"; };
   L.possible = (p) => ctx.roles.filter((r) => L.isPossible(p, r));
+  // Rôles bons (Villageois + Marginaux) encore possibles : un Mauvais annonce
+  // toujours un rôle bon, c'est donc ce nombre qui aide à démasquer.
+  L.possibleGood = (p) => L.possible(p).filter((r) => r.team === "townsfolk" || r.team === "outsider");
 
   // ---------- Déductions tirées des infos structurées du journal ----------
   // Map « idJoueur|idRôle » → origine (« Léa, N1 »). Les infos d'un joueur marqué

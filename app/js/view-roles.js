@@ -1,7 +1,7 @@
 // Onglet Rôles : filtres (réveil, choix, équipe), recherche et cartes des rôles.
 import { app, commit, save } from "./context.js";
 import { $, esc, icon, norm } from "./util.js";
-import { toggleOut } from "./actions.js";
+import { select, toggleOut } from "./actions.js";
 
 const L = app.L;
 const WAKE_SHORT = { each: "Chaque nuit", notfirst: "Sauf 1re nuit", once: "Une fois", none: "Pas de réveil" };
@@ -37,7 +37,7 @@ function makeMulti(el, title, options, key) {
     const sel = L.cur()[key];
     el.querySelectorAll("input").forEach((i) => (i.checked = sel.includes(i.value)));
     const labels = options.filter((o) => sel.includes(o.id)).map((o) => o.label);
-    el.querySelector(".val").textContent = labels.length === 0 ? "Indifférent" : labels.length === 1 ? labels[0] : `${labels.length} choix`;
+    el.querySelector(".val").textContent = labels.length === 0 ? "Tous" : labels.length === 1 ? labels[0] : `${labels.length} choix`;
     el.classList.toggle("on", labels.length > 0);
   });
 }
@@ -103,6 +103,9 @@ export function renderRoles() {
   const empty = q && !html ? `<p class="empty">Aucun rôle ne contient « ${esc(search)} ».</p>`
     : app.state.hideExcluded && n === 0 ? `<p class="empty">Aucun rôle ne correspond. Une info est peut-être fausse (ivresse, poison, Reclus…).</p>` : "";
   $("#roles").innerHTML = html + empty;
+  const cur = app.state.current;
+  $("#roles-for").innerHTML = `<option value="explore" ${p.explore ? "selected" : ""}>Personne (exploration libre)</option>` +
+    L.players().map((x) => `<option value="${x.id}" ${x.id === cur ? "selected" : ""}>${esc(x.name || "Sans nom")}${x.me ? " (moi)" : ""}${x.dead ? " †" : ""}</option>`).join("");
   $("#roles").classList.toggle("compact", !!app.state.compact);
   $("#count").innerHTML = `<strong>${n}</strong> / ${app.roles.length} rôles possibles${p.explore ? ` <span class="muted">(aucun joueur sélectionné)</span>` : ` pour <em>${esc(p.name)}</em>`}`;
   $("#hide-excluded").checked = app.state.hideExcluded;
@@ -128,6 +131,7 @@ export function initRoles() {
     const card = e.target.closest(".role");
     if (card && app.state.compact) card.classList.toggle("open");
   });
+  $("#roles-for").addEventListener("change", (e) => select(e.target.value));
   $("#role-search").addEventListener("input", (e) => { search = e.target.value; renderRoles(); });
   $("#compact").addEventListener("change", (e) => { app.state.compact = e.target.checked; save(); renderRoles(); });
   $("#hide-excluded").addEventListener("change", (e) => { app.state.hideExcluded = e.target.checked; save(); renderRoles(); });

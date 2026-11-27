@@ -21,6 +21,46 @@ export function toast(msg) {
   const t = $("#toast");
   t.innerHTML = `<span>${esc(msg)}</span>`;
   t.hidden = false;
+  t.classList.remove("leaving");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.hidden = true; }, 4000);
+  toastTimer = setTimeout(() => {
+    t.classList.add("leaving");
+    toastTimer = setTimeout(() => { t.hidden = true; t.classList.remove("leaving"); }, 200);
+  }, 3000);
+}
+
+// ---------- Fenêtres (dialog) animées ----------
+export const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Ferme une fenêtre après son animation de sortie.
+export function closeDialog(dlg) {
+  if (!dlg.open || dlg.classList.contains("closing")) return;
+  if (reducedMotion()) return dlg.close();
+  dlg.classList.add("closing");
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    dlg.classList.remove("closing");
+    dlg.style.transform = "";
+    dlg.close();
+  };
+  dlg.addEventListener("animationend", (e) => { if (e.target === dlg) finish(); }, { once: true });
+  setTimeout(finish, 320);
+}
+
+// Toutes les fenêtres : sortie animée (Échap, bouton Fermer) et fermeture
+// d'un toucher en dehors de la fenêtre.
+export function initDialogMotion() {
+  $$("dialog").forEach((dlg) => {
+    dlg.addEventListener("cancel", (e) => { e.preventDefault(); closeDialog(dlg); });
+    dlg.querySelectorAll("form[method=dialog]").forEach((f) =>
+      f.addEventListener("submit", (e) => { e.preventDefault(); closeDialog(dlg); }));
+    dlg.addEventListener("pointerdown", (e) => {
+      if (e.target !== dlg) return;
+      const r = dlg.getBoundingClientRect();
+      const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      if (outside) closeDialog(dlg);
+    });
+  });
 }
