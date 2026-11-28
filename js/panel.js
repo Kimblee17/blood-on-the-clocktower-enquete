@@ -43,7 +43,7 @@ export function renderPanel() {
   $("#player-panel").innerHTML = `
     <div class="sheet-head">
       <input type="text" id="p-name" class="name-input pn" value="${esc(p.name)}" autocomplete="off" aria-label="Nom du joueur">
-      <button type="button" class="ghost" id="p-close" autofocus>Fermer</button>
+      <button type="button" class="close-x" id="p-close" aria-label="Fermer" title="Fermer" autofocus><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="toggles">
       ${toggle("dead", "Mort", p.dead)}
@@ -71,22 +71,27 @@ export function renderPanel() {
 function initSwipe() {
   const dlg = sheet();
   let g = null;
+  // Après fermeture, la fiche repart de sa position normale.
+  dlg.addEventListener("close", () => { dlg.style.transform = ""; });
   dlg.addEventListener("pointerdown", (e) => {
     if (!e.target.closest(".sheet-grip, .sheet-head") || e.target.closest("input, button")) return;
     if (window.matchMedia("(min-width: 900px)").matches) return;
-    g = { y0: e.clientY, dy: 0, id: e.pointerId };
+    e.preventDefault();
+    g = { y0: e.clientY, dy: 0, id: e.pointerId, t: e.timeStamp, v: 0 };
     dlg.setPointerCapture(e.pointerId);
     dlg.classList.add("dragging");
   });
   dlg.addEventListener("pointermove", (e) => {
     if (!g || e.pointerId !== g.id) return;
-    g.dy = Math.max(0, e.clientY - g.y0);
-    dlg.style.transform = `translateY(${g.dy}px)`;
+    const dy = Math.max(0, e.clientY - g.y0), dt = Math.max(1, e.timeStamp - g.t);
+    g.v = (dy - g.dy) / dt; // vitesse en px/ms, pour fermer d'un geste rapide
+    g.dy = dy; g.t = e.timeStamp;
+    dlg.style.transform = `translateY(${dy}px)`;
   });
   const end = (e) => {
     if (!g || e.pointerId !== g.id) return;
     dlg.classList.remove("dragging");
-    const far = g.dy > 90;
+    const far = g.dy > Math.min(120, dlg.offsetHeight / 4) || (g.dy > 30 && g.v > 0.5);
     g = null;
     if (far) closeSheet();
     else {
@@ -121,13 +126,10 @@ export function initPanel() {
     const al = e.target.closest("[data-align]"), fl = e.target.closest("[data-flag]");
     if (al) { p.align = al.dataset.align; return commit(); }
     if (fl) return toggleFlag(p, fl.dataset.flag);
-    if (e.target.id === "p-close") return closeSheet();
+    if (e.target.closest("#p-close")) return closeSheet();
     if (e.target.id === "p-roles") {
       closeSheet();
-      app.state.view = "roles";
-      save();
-      app.render();
-      return window.scrollTo(0, 0);
+      return app.goView("roles", { top: true });
     }
     if (e.target.id !== "p-delete") return;
     if (!confirm(`Supprimer « ${p.name} » et ses notes ?`)) return;

@@ -1,6 +1,6 @@
 // Point d'entrée : assemble les vues et gère le rendu global.
 import { app, save } from "./context.js";
-import { $, $$, initDialogMotion, placeholder } from "./util.js";
+import { $, $$, initDialogMotion, placeholder, reducedMotion } from "./util.js";
 import { initRoles, renderRoles, syncFilters } from "./view-roles.js";
 import { initGrid, renderGrid } from "./view-grid.js";
 import { initTable, renderTable } from "./view-table.js";
@@ -30,14 +30,24 @@ function renderView() {
 
 // Chaque vue retrouve sa position de défilement quand on y revient.
 const scrollOf = {};
-function goView(v) {
-  if (v === currentView()) return window.scrollTo({ top: 0, behavior: "smooth" });
-  scrollOf[currentView()] = window.scrollY;
-  app.state.view = v;
-  save();
-  renderView();
-  window.scrollTo(0, scrollOf[v] || 0);
+// Ordre des onglets : la page glisse vers la gauche si on va vers la droite, et inversement.
+const ORDER = ["table", "grid", "roles", "journal"];
+function goView(v, { top = false } = {}) {
+  const from = currentView();
+  if (v === from) return window.scrollTo({ top: 0, behavior: "smooth" });
+  scrollOf[from] = window.scrollY;
+  const swap = () => {
+    app.state.view = v;
+    save();
+    renderView();
+    window.scrollTo(0, top ? 0 : scrollOf[v] || 0);
+  };
+  if (!document.startViewTransition || reducedMotion()) return swap();
+  const root = document.documentElement;
+  root.dataset.nav = ORDER.indexOf(v) > ORDER.indexOf(from) ? "next" : "prev";
+  document.startViewTransition(swap).finished.finally(() => { delete root.dataset.nav; });
 }
+app.goView = goView;
 
 function renderDiscreet() {
   const on = !!app.state.discreet;
