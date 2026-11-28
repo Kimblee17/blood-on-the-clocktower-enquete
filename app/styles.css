@@ -625,7 +625,10 @@ select, input, textarea { transition: border-color .15s, box-shadow .15s; }
 .more-menu #new-game { border-top: 1px solid var(--line); border-radius: 0 0 7px 7px; margin-top: 4px; padding-top: 12px; }
 
 /* Changement d'onglet : la vue apparaît en fondu léger. */
-.view:not([hidden]) { animation: viewIn .24s var(--ease); }
+/* (Navigateurs sans View Transitions ; sinon la page glisse, voir plus bas.) */
+@supports not (view-transition-name: none) {
+  .view:not([hidden]) { animation: viewIn .24s var(--ease); }
+}
 
 @keyframes viewIn { from { opacity: 0; transform: translateY(6px); } }
 @keyframes popIn { from { opacity: 0; transform: scale(.96) translateY(-4px); } }
@@ -653,8 +656,18 @@ dialog.sheet {
 }
 dialog.sheet[open] { animation: sheetUp .3s var(--ease); }
 dialog.sheet.closing { animation: sheetDown .22s ease-in forwards; }
-dialog.sheet.dragging { animation: none; transition: none; }
-.sheet-grip { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 4px auto 8px; cursor: grab; }
+dialog.sheet.dragging { transition: none; user-select: none; }
+/* Zone de prise large (toute la largeur) ; la petite barre est dessinée au centre. */
+.sheet-grip {
+  position: sticky; top: -6px; z-index: 2; height: 26px; margin: -6px -16px 2px; cursor: grab;
+  touch-action: none; background: linear-gradient(var(--bg-2) 70%, transparent);
+}
+.sheet-grip::before {
+  content: ""; position: absolute; left: 50%; top: 10px; width: 44px; height: 5px; margin-left: -22px;
+  border-radius: 3px; background: var(--muted); opacity: .6; transition: opacity .15s, width .15s, margin .15s;
+}
+dialog.sheet.dragging .sheet-grip { cursor: grabbing; }
+dialog.sheet.dragging .sheet-grip::before { opacity: 1; width: 56px; margin-left: -28px; }
 @media (min-width: 900px) {
   dialog.sheet {
     margin: 0 0 0 auto; width: 420px; height: 100dvh; max-height: 100dvh;
@@ -772,3 +785,33 @@ body.discreet .toast { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes breathe { 50% { opacity: .55; } }
 @keyframes mist { from { background-position: 0% 0%, 100% 100%, 0 0; } to { background-position: 100% 60%, 0% 30%, 0 0; } }
+
+/* Bouton de fermeture des fenêtres : croix rouge. */
+.close-x {
+  flex: none; display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0;
+  background: transparent; border: 0; border-radius: 50%; color: var(--danger); cursor: pointer;
+}
+.close-x svg { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; pointer-events: none; }
+.close-x:hover, .close-x:focus-visible { background: rgba(224,113,107,.14); }
+
+/* Changement d'onglet : la page glisse vers la gauche ou la droite (View Transitions). */
+.layout { view-transition-name: page; }
+.views { view-transition-name: tabs; }
+.topbar { view-transition-name: topbar; }
+::view-transition-group(tabs), ::view-transition-group(topbar) { z-index: 2; }
+::view-transition-group(page) { animation: none; }
+::view-transition-old(page), ::view-transition-new(page) {
+  animation-duration: .32s; animation-timing-function: var(--ease); animation-fill-mode: both;
+  mix-blend-mode: normal;
+}
+html[data-nav=next]::view-transition-old(page) { animation-name: pageOutLeft; }
+html[data-nav=next]::view-transition-new(page) { animation-name: pageInRight; }
+html[data-nav=prev]::view-transition-old(page) { animation-name: pageOutRight; }
+html[data-nav=prev]::view-transition-new(page) { animation-name: pageInLeft; }
+@keyframes pageInRight { from { transform: translateX(100%); } }
+@keyframes pageInLeft { from { transform: translateX(-100%); } }
+@keyframes pageOutLeft { to { transform: translateX(-100%); } }
+@keyframes pageOutRight { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(page), ::view-transition-new(page) { animation: none; }
+}
