@@ -62,7 +62,12 @@ app.L = createLogic(app);
 
 // Scénarios fournis + scénarios importés par l'utilisateur.
 export const allScripts = () => [...SCRIPTS, ...(app.state.customScripts || [])];
+// Rôles maison des scénarios importés : ajoutés à la base (sans écraser un rôle connu).
+export function registerHomebrew(script) {
+  Object.entries(script?.homebrew || {}).forEach(([id, r]) => { if (!ROLES[id]) ROLES[id] = r; });
+}
 export function useScript(id) {
+  (app.state.customScripts || []).forEach(registerHomebrew);
   app.script = allScripts().find((s) => s.id === id) || SCRIPTS[0];
   app.roles = buildScript(app.script, ROLES);
   app.byId = Object.fromEntries(app.roles.map((r) => [r.id, r]));

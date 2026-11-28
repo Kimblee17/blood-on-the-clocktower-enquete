@@ -162,6 +162,34 @@ BEHAVIOUR = {
     "vigormortis": (["notfirst"], ["one"]),
     "vortox": (["notfirst"], ["one"]),
     "zombuul": (["notfirst"], ["one"]),
+    # --- Rôles expérimentaux (non utilisés dans les scénarios fournis) ---
+    "acrobat": (["notfirst"], ["one"]),
+    "atheist": (["none"], ["none"]),
+    "bountyhunter": (["once", "notfirst"], ["none"]),
+    "choirboy": (["notfirst", "none"], ["none"]),
+    "cultleader": (["each"], ["none"]),
+    "engineer": (["once", "none"], ["char", "none"]),
+    "farmer": (["notfirst", "none"], ["none"]),
+    "magician": (["none"], ["none"]),
+    "poppygrower": (["none"], ["none"]),
+    "villageidiot": (["each"], ["one"]),
+    "hatter": (["none"], ["none"]),
+    "heretic": (["none"], ["none"]),
+    "hermit": "derive:outsider",
+    "ogre": (["once"], ["one"]),
+    "zealot": (["none"], ["none"]),
+    "harpy": (["each"], ["two"]),
+    "organgrinder": (["each"], ["none"]),
+    "psychopath": (["none"], ["none"]),
+    "summoner": (["once", "notfirst"], ["none", "one", "char"]),
+    "vizier": (["none"], ["none"]),
+    "kazali": (["each"], ["one", "none"]),
+    "legion": (["notfirst"], ["none"]),
+    "lleech": (["each"], ["one"]),
+    "lordoftyphon": (["notfirst"], ["one"]),
+    "ojo": (["notfirst"], ["char"]),
+    "riot": (["none"], ["none"]),
+    "yaggababble": (["once"], ["none"]),
 }
 
 NOTES = {
@@ -337,7 +365,8 @@ def main():
         sid = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
         scripts.append({"id": sid, "name": name, "author": meta.get("author", ""), "roles": ids})
 
-    used = {i for s in scripts for i in s["roles"]} | set(BEHAVIOUR)
+    # Tous les rôles du wiki : un scénario importé en JSON peut utiliser n'importe lequel.
+    used = {i for s in scripts for i in s["roles"]} | set(BEHAVIOUR) | set(roles)
     chars, rules = {}, {}
     for rid in sorted(used):
         r = roles.get(rid)

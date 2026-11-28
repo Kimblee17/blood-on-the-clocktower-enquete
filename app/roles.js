@@ -53,6 +53,21 @@ const NIGHT_SPECIALS = {
 
 // night.first / night.other : numéro d'ordre de réveil (feuille de nuit officielle).
 const ROLES = {
+  "acrobat": {
+    "name": "Acrobate",
+    "en": "Acrobat",
+    "team": "townsfolk",
+    "ability": "Chaque nuit*, choisissez un joueur : s'il est ou devient ivre ou empoisonné cette nuit, vous mourez.",
+    "wake": [
+      "notfirst"
+    ],
+    "choice": [
+      "one"
+    ],
+    "night": {
+      "other": 22
+    }
+  },
   "alchemist": {
     "name": "Alchimiste",
     "en": "Alchemist",
@@ -144,6 +159,18 @@ const ROLES = {
       "other": 56
     }
   },
+  "atheist": {
+    "name": "Athée",
+    "en": "Atheist",
+    "team": "townsfolk",
+    "ability": "Le Conteur peut enfreindre les règles. S'il est exécuté, le Bien gagne, même si vous êtes mort. [Aucun rôle maléfique]",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ]
+  },
   "balloonist": {
     "name": "Aéronaute",
     "en": "Balloonist",
@@ -229,6 +256,23 @@ const ROLES = {
     "choice": [
       "none"
     ]
+  },
+  "bountyhunter": {
+    "name": "Chasseur De Primes",
+    "en": "Bounty Hunter",
+    "team": "townsfolk",
+    "ability": "Lors de votre 1re nuit, vous apprenez 1 joueur maléfique. Si le joueur maléfique meurt, vous en apprenez un autre cette nuit, et ainsi de suite. [1 Villageois est maléfique]",
+    "wake": [
+      "once",
+      "notfirst"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "first": 69,
+      "other": 88
+    }
   },
   "butler": {
     "name": "Majordome",
@@ -316,6 +360,22 @@ const ROLES = {
       "first": 55
     }
   },
+  "choirboy": {
+    "name": "Choriste",
+    "en": "Choirboy",
+    "team": "townsfolk",
+    "ability": "Si le Démon tue le Roi, vous apprenez quel joueur est le Démon. [+ Roi]",
+    "wake": [
+      "notfirst",
+      "none"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "other": 66
+    }
+  },
   "clockmaker": {
     "name": "Horloger",
     "en": "Clockmaker",
@@ -348,6 +408,22 @@ const ROLES = {
     "night": {
       "first": 35,
       "other": 18
+    }
+  },
+  "cultleader": {
+    "name": "Chef De Secte",
+    "en": "Cult Leader",
+    "team": "townsfolk",
+    "ability": "Chaque nuit, vous devenez de l'alignement d'un voisin en vie. Si tous les joueurs bons rejoignent votre secte, votre équipe gagne.",
+    "wake": [
+      "each"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "first": 71,
+      "other": 90
     }
   },
   "damsel": {
@@ -423,6 +499,24 @@ const ROLES = {
       "other": 76
     }
   },
+  "engineer": {
+    "name": "Ingénieur",
+    "en": "Engineer",
+    "team": "townsfolk",
+    "ability": "Une fois par partie, la nuit, choisissez quel Démon ou quels Sbires sont en jeu.",
+    "wake": [
+      "once",
+      "none"
+    ],
+    "choice": [
+      "char",
+      "none"
+    ],
+    "night": {
+      "first": 28,
+      "other": 14
+    }
+  },
   "eviltwin": {
     "name": "Jumelle Maléfique",
     "en": "Evil Twin",
@@ -467,6 +561,22 @@ const ROLES = {
     ],
     "night": {
       "other": 45
+    }
+  },
+  "farmer": {
+    "name": "Fermière",
+    "en": "Farmer",
+    "team": "townsfolk",
+    "ability": "Si vous mourez la nuit, un joueur bon en vie devient une Fermière.",
+    "wake": [
+      "notfirst",
+      "none"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "other": 70
     }
   },
   "fearmonger": {
@@ -663,6 +773,56 @@ const ROLES = {
       "other": 73
     }
   },
+  "harpy": {
+    "name": "Harpie",
+    "en": "Harpy",
+    "team": "minion",
+    "ability": "Chaque nuit, choisissez 2 joueurs : le lendemain, le 1er joueur est fou que le 2e est maléfique, ou l'un des deux ou les deux pourraient mourir.",
+    "wake": [
+      "each"
+    ],
+    "choice": [
+      "two"
+    ],
+    "night": {
+      "first": 45,
+      "other": 31
+    }
+  },
+  "hatter": {
+    "name": "Chapelier",
+    "en": "Hatter",
+    "team": "outsider",
+    "ability": "Si vous êtes mort ce jour ou cette nuit, les Sbires et Démons peuvent choisir de nouveaux rôles de Sbire et Démon.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "other": 59
+    }
+  },
+  "heretic": {
+    "name": "Hérétique",
+    "en": "Heretic",
+    "team": "outsider",
+    "ability": "Quiconque gagne, perd, et quiconque perd, gagne, même si vous êtes mort.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ]
+  },
+  "hermit": {
+    "name": "Ermite",
+    "en": "Hermit",
+    "team": "outsider",
+    "ability": "Vous avez les capacités de tous les Marginaux. [-0 ou -1 Marginal]",
+    "derive": "outsider"
+  },
   "highpriestess": {
     "name": "Grande Prêtresse",
     "en": "High Priestess",
@@ -760,6 +920,23 @@ const ROLES = {
       "other": 84
     }
   },
+  "kazali": {
+    "name": "Kazali",
+    "en": "Kazali",
+    "team": "demon",
+    "ability": "Chaque nuit*, choisissez un joueur : il meurt. [Vous choisissez quels joueurs sont quels Sbires. -? à +? Marginaux]",
+    "wake": [
+      "each"
+    ],
+    "choice": [
+      "one",
+      "none"
+    ],
+    "night": {
+      "first": 8,
+      "other": 55
+    }
+  },
   "king": {
     "name": "Roi",
     "en": "King",
@@ -805,6 +982,21 @@ const ROLES = {
     "nightText": "Apprend 2 joueurs qui ne sont pas le Démon.",
     "night": {
       "first": 64
+    }
+  },
+  "legion": {
+    "name": "Légion",
+    "en": "Legion",
+    "team": "demon",
+    "ability": "Chaque nuit*, un joueur pourrait mourir. Toute exécution échoue si seul le Mal a voté. Vous apparaissez aussi comme Sbire.[La majorité des joueurs sont Légion]",
+    "wake": [
+      "notfirst"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "other": 39
     }
   },
   "leviathan": {
@@ -856,6 +1048,38 @@ const ROLES = {
       "other": 53
     }
   },
+  "lleech": {
+    "name": "Parasyte",
+    "en": "Lleech",
+    "team": "demon",
+    "ability": "Chaque nuit*, choisissez un joueur : il meurt. Lors de votre 1re nuit, choisissez un joueur : il est empoisonné. Vous mourez si et seulement si ce joueur est mort.",
+    "wake": [
+      "each"
+    ],
+    "choice": [
+      "one"
+    ],
+    "night": {
+      "first": 31,
+      "other": 52
+    }
+  },
+  "lordoftyphon": {
+    "name": "Seigneur De Typhon",
+    "en": "The Lord of Typhon",
+    "team": "demon",
+    "ability": "Chaque nuit*, choisissez un joueur : il meurt. [Les maléfiques forment une ligne. Vous êtes au milieu. +1 Sbire. -? à +? Marginaux]",
+    "wake": [
+      "notfirst"
+    ],
+    "choice": [
+      "one"
+    ],
+    "night": {
+      "first": 7,
+      "other": 48
+    }
+  },
   "lunatic": {
     "name": "Lunatique",
     "en": "Lunatic",
@@ -882,6 +1106,21 @@ const ROLES = {
     ],
     "night": {
       "other": 37
+    }
+  },
+  "magician": {
+    "name": "Magicien",
+    "en": "Magician",
+    "team": "townsfolk",
+    "ability": "Le Démon pense que vous êtes un Sbire. Les Sbires pensent que vous êtes un Démon.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "first": 18
     }
   },
   "marionette": {
@@ -1056,6 +1295,36 @@ const ROLES = {
       "other": 46
     }
   },
+  "ogre": {
+    "name": "Ogre",
+    "en": "Ogre",
+    "team": "outsider",
+    "ability": "Lors de votre 1re nuit, choisissez un joueur (sauf vous-même) : vous devenez de son alignement (sans le connaître) même ivre ou empoisonné.",
+    "wake": [
+      "once"
+    ],
+    "choice": [
+      "one"
+    ],
+    "night": {
+      "first": 73
+    }
+  },
+  "ojo": {
+    "name": "Ojo",
+    "en": "Ojo",
+    "team": "demon",
+    "ability": "Chaque nuit*, choisissez un rôle : il meurt. S'il n'est pas en jeu, le Conteur choisit qui meurt.",
+    "wake": [
+      "notfirst"
+    ],
+    "choice": [
+      "char"
+    ],
+    "night": {
+      "other": 50
+    }
+  },
   "oracle": {
     "name": "Oracle",
     "en": "Oracle",
@@ -1070,6 +1339,22 @@ const ROLES = {
     "nightText": "Apprend combien de morts sont maléfiques.",
     "night": {
       "other": 82
+    }
+  },
+  "organgrinder": {
+    "name": "Organiste De Rue",
+    "en": "Organ Grinder",
+    "team": "minion",
+    "ability": "Tous les joueurs gardent les yeux fermés lors des votes et leur décompte est secret. Chaque nuit, choisissez si vous êtes ivre jusqu'au crépuscule.",
+    "wake": [
+      "each"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "first": 39,
+      "other": 25
     }
   },
   "pacifist": {
@@ -1196,6 +1481,22 @@ const ROLES = {
       "none"
     ]
   },
+  "poppygrower": {
+    "name": "Planteur De Pavot",
+    "en": "Poppy Grower",
+    "team": "townsfolk",
+    "ability": "Sbires et Démons ne se connaissent pas. Si vous mourez, ils apprennent qui ils sont cette nuit.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "first": 16,
+      "other": 12
+    }
+  },
   "preacher": {
     "name": "Prédicateur",
     "en": "Preacher",
@@ -1242,6 +1543,18 @@ const ROLES = {
     "night": {
       "other": 65
     }
+  },
+  "psychopath": {
+    "name": "Psychopathe",
+    "en": "Psychopath",
+    "team": "minion",
+    "ability": "Chaque jour, avant les nominations, vous pouvez choisir publiquement un joueur : il meurt. Si vous êtes exécuté, vous mourez uniquement si vous perdez au chifoumi.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ]
   },
   "pukka": {
     "name": "Pukka",
@@ -1300,6 +1613,21 @@ const ROLES = {
     "choice": [
       "none"
     ]
+  },
+  "riot": {
+    "name": "Émeute",
+    "en": "Riot",
+    "team": "demon",
+    "ability": "Le jour 3, les Sbires deviennent Émeute et les nommés meurent mais nomment immédiatement un joueur en vie. Ceci doit avoir lieu.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "other": 97
+    }
   },
   "sage": {
     "name": "Sage",
@@ -1515,6 +1843,25 @@ const ROLES = {
       "first": 63
     }
   },
+  "summoner": {
+    "name": "Invocatrice",
+    "en": "Summoner",
+    "team": "minion",
+    "ability": "Recevez 3 bluffs. La 3ᵉ nuit, choisissez qui devient un Démon maléfique de votre choix. [Aucun Démon]",
+    "wake": [
+      "once",
+      "notfirst"
+    ],
+    "choice": [
+      "none",
+      "one",
+      "char"
+    ],
+    "night": {
+      "first": 23,
+      "other": 34
+    }
+  },
   "sweetheart": {
     "name": "Dulcinée",
     "en": "Sweetheart",
@@ -1606,6 +1953,22 @@ const ROLES = {
       "other": 49
     }
   },
+  "villageidiot": {
+    "name": "Idiot Du Village",
+    "en": "Village Idiot",
+    "team": "townsfolk",
+    "ability": "Chaque nuit, choisissez un joueur : vous apprenez son alignement. [+0 ou +1 à +2 Idiots du village dont un ivre]",
+    "wake": [
+      "each"
+    ],
+    "choice": [
+      "one"
+    ],
+    "night": {
+      "first": 68,
+      "other": 86
+    }
+  },
   "virgin": {
     "name": "Immaculée",
     "en": "Virgin",
@@ -1617,6 +1980,21 @@ const ROLES = {
     "choice": [
       "none"
     ]
+  },
+  "vizier": {
+    "name": "Vizir",
+    "en": "Vizier",
+    "team": "minion",
+    "ability": "Tous les joueurs savent que vous êtes le Vizir. Vous ne pouvez pas mourir dans la journée. Si le Bien a voté, vous pouvez exécuter immédiatement.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "first": 80
+    }
   },
   "vortox": {
     "name": "Vortox",
@@ -1731,6 +2109,34 @@ const ROLES = {
       "other": 16
     }
   },
+  "yaggababble": {
+    "name": "Yaggablabla",
+    "en": "Yaggababble",
+    "team": "demon",
+    "ability": "Lors de votre 1re nuit, vous apprenez une phrase secrète. Pour chaque fois que vous l'avez dite publiquement ce jour, un joueur pourrait mourir.",
+    "wake": [
+      "once"
+    ],
+    "choice": [
+      "none"
+    ],
+    "night": {
+      "first": 17,
+      "other": 54
+    }
+  },
+  "zealot": {
+    "name": "Zélote",
+    "en": "Zealot",
+    "team": "outsider",
+    "ability": "S'il y a au moins 5 joueurs en vie, vous devez voter pour chaque nomination.",
+    "wake": [
+      "none"
+    ],
+    "choice": [
+      "none"
+    ]
+  },
   "zombuul": {
     "name": "Zombuul",
     "en": "Zombuul",
@@ -1762,8 +2168,18 @@ const JINXES = [
  ],
  [
   "alchemist",
+  "summoner",
+  "L'Alchimiste-Invocatrice ne reçoit pas de bluffs et choisit le type de Démon mais pas le joueur. S'il meurt avant que cela n'arrive, les Maléfiques gagnent. [Pas de Démon]"
+ ],
+ [
+  "alchemist",
   "boffin",
   "Un Alchimiste-Laborantin n'apprend pas quelle capacité le Démon a obtenue."
+ ],
+ [
+  "alchemist",
+  "organgrinder",
+  "Si l'Alchimiste a cette capacité, l'Organiste de rue est en jeu ; si l'Alchimiste et l'Organiste de rue sont sobres, ils sont tous deux ivres."
  ],
  [
   "alchemist",
@@ -1787,8 +2203,23 @@ const JINXES = [
  ],
  [
   "cannibal",
+  "poppygrower",
+  "Si le Cannibale mange le Planteur de pavot, puis meurt ou perd cette capacité, le Démon et les Sbires se reconnaissent cette nuit."
+ ],
+ [
+  "cannibal",
   "princess",
   "Si le Cannibale a nominé, exécuté et tué la Princesse aujourd'hui, le Démon ne tue pas cette nuit."
+ ],
+ [
+  "cannibal",
+  "zealot",
+  "Si le Cannibale gagne la capacité du Zélote, il l'apprend."
+ ],
+ [
+  "bountyhunter",
+  "kazali",
+  "Si le Kazali transforme le Chasseur de primes en Sbire, aucun Villageois maléfique n'est créé."
  ],
  [
   "mathematician",
@@ -1846,6 +2277,46 @@ const JINXES = [
   "Si le Docteur de la peste meurt, un Sbire gagne cette capacité en plus de la sienne, et l'apprend."
  ],
  [
+  "heretic",
+  "baron",
+  "Un seul rôle jinxé peut être en jeu."
+ ],
+ [
+  "heretic",
+  "spy",
+  "Un seul rôle jinxé peut être en jeu."
+ ],
+ [
+  "heretic",
+  "pithag",
+  "Un seul rôle jinxé peut être en jeu."
+ ],
+ [
+  "heretic",
+  "lleech",
+  "Un seul rôle jinxé peut être en jeu."
+ ],
+ [
+  "heretic",
+  "godfather",
+  "Un seul rôle jinxé peut être en jeu."
+ ],
+ [
+  "heretic",
+  "widow",
+  "Un seul rôle jinxé peut être en jeu."
+ ],
+ [
+  "butler",
+  "organgrinder",
+  "Si l'Organiste de rue provoque un vote avec les yeux fermés, le Majordome peut lever la main mais son vote ne compte que si son maître a voté."
+ ],
+ [
+  "ogre",
+  "recluse",
+  "Si la Recluse s'enregistre comme maléfique pour l'Ogre, l'Ogre apprend qu'il est maléfique."
+ ],
+ [
   "cerenovus",
   "goblin",
   "Le Cerenovus peut rendre un joueur fou d'être Gobelin."
@@ -1861,6 +2332,21 @@ const JINXES = [
   "Si l'Espionne est (ou a été) en jeu, la Demoiselle est empoisonnée."
  ],
  [
+  "spy",
+  "ogre",
+  "L'Espionne s'enregistre comme maléfique pour l'Ogre."
+ ],
+ [
+  "spy",
+  "poppygrower",
+  "Si le Planteur de pavot est en jeu, l'Espionne ne voit pas le grimoire avant sa mort."
+ ],
+ [
+  "pithag",
+  "cultleader",
+  "Si la Guenaude transforme un maléfique en Chef de secte, il ne peut pas redevenir bon via sa propre capacité."
+ ],
+ [
   "pithag",
   "damsel",
   "Si une Guenaude crée une Demoiselle, le Conteur choisit quel joueur deviendra la Demoiselle."
@@ -1872,13 +2358,78 @@ const JINXES = [
  ],
  [
   "pithag",
+  "ogre",
+  "Si la Guenaude transforme un maléfique en Ogre, il ne peut pas redevenir bon via sa propre capacité."
+ ],
+ [
+  "pithag",
   "politician",
   "Si la Guenaude transforme un maléfique en Politicien, il ne peut pas redevenir bon via sa propre capacité."
+ ],
+ [
+  "summoner",
+  "hatter",
+  "L'Invocatrice ne peut pas créer un Démon déjà en jeu. Si elle crée un Démon qui n'est pas en jeu, les morts de ce soir sont aléatoires."
+ ],
+ [
+  "summoner",
+  "courtier",
+  "Si l'Invocatrice est ivre la 3ᵉ nuit, elle choisit le Démon, mais le Conteur choisit le joueur."
+ ],
+ [
+  "summoner",
+  "pithag",
+  "Impossible de créer un Démon déjà en jeu. Si elle en crée un qui n'est pas en jeu, les morts de cette nuit sont arbitraires."
+ ],
+ [
+  "summoner",
+  "kazali",
+  "L'Invocatrice ne peut pas créer un Démon déjà en jeu. Si elle crée un Démon qui n'est pas en jeu, les morts de ce soir sont aléatoires."
+ ],
+ [
+  "summoner",
+  "legion",
+  "Si l'Invocatrice crée une Légion, la plupart des joueurs (dont tous les maléfiques) deviennent des Légions maléfiques."
+ ],
+ [
+  "summoner",
+  "poppygrower",
+  "S'il est vivant quand l'Invocatrice agit, l'Invocatrice choisit le Démon, mais le Conteur choisit le joueur."
+ ],
+ [
+  "summoner",
+  "preacher",
+  "S'il a choisi l'Invocatrice au plus tard la 3ᵉ nuit, l'Invocatrice choisit le Démon, le Conteur choisit le joueur."
+ ],
+ [
+  "summoner",
+  "pukka",
+  "L'Invocatrice peut choisir un joueur pour qu'il devienne le Pukka dès la deuxième nuit."
+ ],
+ [
+  "summoner",
+  "zombuul",
+  "Si l'Invocatrice transforme un joueur mort en Zombuul, le Conteur considère ce joueur comme un Zombuul qui est mort une fois."
+ ],
+ [
+  "boffin",
+  "cultleader",
+  "Si le Démon a la capacité du Chef de secte, il ne peut pas devenir bon via cette capacité."
  ],
  [
   "boffin",
   "goon",
   "Si le Démon a la capacité du Gros-bras, il ne peut pas redevenir bon via cette capacité."
+ ],
+ [
+  "boffin",
+  "heretic",
+  "Le Démon ne peut pas avoir la capacité d'Hérétique."
+ ],
+ [
+  "boffin",
+  "ogre",
+  "Le Démon ne peut pas avoir la capacité d'Ogre."
  ],
  [
   "boffin",
@@ -1891,6 +2442,46 @@ const JINXES = [
   "Si la Veuve est (ou a été) en jeu, la Demoiselle est empoisonnée."
  ],
  [
+  "widow",
+  "poppygrower",
+  "Si le Planteur de pavot est en jeu, la Veuve ne voit pas le grimoire avant sa mort."
+ ],
+ [
+  "vizier",
+  "alsaahir",
+  "Le Conteur n'annonce pas que le Vizir est en jeu."
+ ],
+ [
+  "vizier",
+  "courtier",
+  "Si le Vizir perd sa capacité, il l'apprend. S'il est exécuté alors qu'il l'a, son équipe gagne."
+ ],
+ [
+  "vizier",
+  "investigator",
+  "Le Conteur n'annonce pas que le Vizir est en jeu."
+ ],
+ [
+  "vizier",
+  "fearmonger",
+  "Le Vizir se réveille avec lui, apprend sa cible et ne peut pas choisir de l'exécuter immédiatement."
+ ],
+ [
+  "vizier",
+  "politician",
+  "Le Politicien peut s'enregistrer comme maléfique pour le Vizir."
+ ],
+ [
+  "vizier",
+  "preacher",
+  "Si le Vizir perd son pouvoir, il l'apprend. S'il est exécuté alors qu'il possède encore son pouvoir, son équipe gagne."
+ ],
+ [
+  "vizier",
+  "zealot",
+  "Le Zélote peut s'enregistrer comme maléfique pour le Vizir."
+ ],
+ [
   "alhadikhia",
   "mastermind",
   "Si Al-Hadikhia meurt exécuté et que le Conspirateur est vivant, Al-Hadikhia choisit trois Bons cette nuit : si tous choisissent de vivre, le Mal gagne, sinon le Bien gagne."
@@ -1899,6 +2490,76 @@ const JINXES = [
   "alhadikhia",
   "princess",
   "Si la Princesse a nommé et exécuté un joueur lors de son 1er jour, personne ne meurt de l'Al-Hadikhia cette nuit."
+ ],
+ [
+  "riot",
+  "innkeeper",
+  "Si l'Émeute est en jeu, le joueur protégé par l'Aubergiste est à l'abri de toutes les capacités maléfiques."
+ ],
+ [
+  "riot",
+  "banshee",
+  "Chaque nuit*, l'Émeute choisit un joueur bon en vie : une Banshee choisie meurt et gagne sa capacité."
+ ],
+ [
+  "riot",
+  "farmer",
+  "Chaque nuit*, l'Émeute choisit un joueur bon en vie : une Fermière choisie déclenche sa capacité mais ne meurt pas."
+ ],
+ [
+  "riot",
+  "ravenkeeper",
+  "Chaque nuit*, l'Émeute choisit un joueur bon en vie : une Corneille choisie utilise sa capacité mais ne meurt pas."
+ ],
+ [
+  "riot",
+  "king",
+  "S'il y a au moins un mort, le Roi apprend un rôle vivant chaque nuit."
+ ],
+ [
+  "riot",
+  "mayor",
+  "Le Maire peut stopper les nominations. S'il le fait alors qu'il ne reste qu'une seule Émeute en vie, le Bien gagne ; sinon, les Maléfiques gagnent."
+ ],
+ [
+  "riot",
+  "monk",
+  "Si une Émeute est en jeu, le joueur protégé par le Moine est à l'abri de toutes les capacités maléfiques."
+ ],
+ [
+  "riot",
+  "sage",
+  "Chaque nuit*, l'Émeute choisit un joueur bon en vie : un Sage choisi utilise sa capacité mais ne meurt pas."
+ ],
+ [
+  "riot",
+  "soldier",
+  "Si une Émeute est en jeu, le Soldat est à l'abri de toutes les capacités maléfiques."
+ ],
+ [
+  "legion",
+  "hatter",
+  "Si la Légion est en jeu, le Chapelier n'a pas de capacité."
+ ],
+ [
+  "legion",
+  "minstrel",
+  "Si une Légion a été exécutée aujourd'hui, elle garde sa capacité, mais le Ménestrel peut apprendre qu'elle est Légion."
+ ],
+ [
+  "legion",
+  "politician",
+  "Le Politicien peut s'enregistrer comme maléfique pour la Légion."
+ ],
+ [
+  "legion",
+  "preacher",
+  "Si le Prédicateur choisit une Légion, elle garde sa capacité, mais le Prédicateur peut apprendre qu'elle est Légion."
+ ],
+ [
+  "legion",
+  "zealot",
+  "Le Zélote peut s'enregistrer comme maléfique pour la Légion."
  ],
  [
   "leviathan",
@@ -1914,6 +2575,16 @@ const JINXES = [
   "leviathan",
   "ravenkeeper",
   "Chaque nuit*, le Léviathan choisit un joueur en vie différent des nuits précédentes : une Corneille choisie utilise sa capacité mais ne meurt pas."
+ ],
+ [
+  "leviathan",
+  "hatter",
+  "Le Léviathan ne peut pas entrer en jeu après le jour 5."
+ ],
+ [
+  "leviathan",
+  "farmer",
+  "Chaque nuit*, le Léviathan choisit un joueur bon en vie différent des nuits précédentes : une Fermière choisie utilise sa capacité mais ne meurt pas."
  ],
  [
   "leviathan",
@@ -1939,6 +2610,26 @@ const JINXES = [
   "leviathan",
   "soldier",
   "Si le Léviathan nomme et exécute le Soldat, le Bien gagne."
+ ],
+ [
+  "lleech",
+  "mastermind",
+  "Si le Conspirateur est en vie et que l'hôte du Parasyte meurt exécuté, le Parasyte vit mais perd sa capacité."
+ ],
+ [
+  "lleech",
+  "slayer",
+  "Si la Pourfendeuse tue l'hôte du Parasyte, l'hôte meurt."
+ ],
+ [
+  "lilmonsta",
+  "hatter",
+  "Si le Chapelier meurt et que le Démon choisit le Timonstre, il choisit aussi un Sbire à devenir."
+ ],
+ [
+  "lilmonsta",
+  "vizier",
+  "Si le Vizir garde le Timonstre, il meurt à l'exécution."
  ],
  [
   "vortox",
