@@ -1,6 +1,6 @@
 // Fenêtres : Aide de jeu (ordre de nuit, règles, répartition, scénarios),
 // Parties (archives / nouvelle partie) et résumé à copier.
-import { app, allScripts, commit, GAME_KEYS, newProfile, save, useScript } from "./context.js";
+import { app, allScripts, commit, GAME_KEYS, newProfile, registerHomebrew, save, useScript } from "./context.js";
 import { $, $$, closeDialog, esc, icon, toast, uid } from "./util.js";
 import { phaseName } from "./logic.js";
 import { evText, resetDraft, TYPE_LABEL } from "./view-journal.js";
@@ -56,21 +56,37 @@ function importScript(text, fallbackName) {
   try { data = JSON.parse(text); } catch (e) { return msg("Ce n'est pas un JSON valide."); }
   if (!Array.isArray(data)) return msg("Format attendu : une liste de rôles.");
   const meta = data.find((x) => x && typeof x === "object" && x.id === "_meta") || {};
+  const norm = (i) => String(i).replace(/[_-]/g, "").toLowerCase();
   const ids = [...new Set(data.map((x) => (typeof x === "string" ? x : x?.id)).filter(Boolean)
-    .map((i) => String(i).replace(/[_-]/g, "").toLowerCase()).filter((i) => i !== "meta"))];
+    .map(norm).filter((i) => i !== "meta"))];
+  // Rôles maison décrits dans le JSON (nom, équipe, capacité) et absents de la base.
+  const homebrew = {};
+  data.forEach((x) => {
+    const id = x && typeof x === "object" && x.id ? norm(x.id) : "";
+    if (!id || ROLES[id] || !x.name || !TEAMS.some((t) => t.id === x.team)) return;
+    homebrew[id] = { name: String(x.name), en: "", team: x.team, ability: String(x.ability || ""),
+      wake: ["each", "notfirst", "once", "none"], choice: ["one", "two", "three", "char", "none"],
+      note: "Rôle maison : réveil et choix inconnus.", homebrew: true };
+  });
+  registerHomebrew({ homebrew });
   const known = ids.filter((i) => ROLES[i]), unknown = ids.filter((i) => !ROLES[i]);
   if (!known.length) return msg("Aucun rôle reconnu dans ce scénario.");
-  const sc = { id: `custom_${uid()}`, name: meta.name || fallbackName || "Scénario importé", author: meta.author || "", roles: known };
+  // Les ids inconnus sont gardés : ils apparaîtront si la base de rôles les ajoute un jour.
+  const sc = { id: `custom_${uid()}`, name: meta.name || fallbackName || "Scénario importé", author: meta.author || "", roles: ids,
+    ...(Object.keys(homebrew).length ? { homebrew } : {}) };
   app.state.customScripts.push(sc);
   save();
   renderScriptSelect();
   renderCustom();
   $("#import-json").value = "";
-  msg(`« ${sc.name} » importé : ${known.length} rôles. Choisissez-le dans « Nouvelle partie ».${unknown.length ? ` Ignorés (voyageurs, Légendaires, inconnus) : ${unknown.join(", ")}.` : ""}`);
+  const hb = Object.values(homebrew).map((r) => r.name);
+  msg(`« ${sc.name} » importé : ${known.length} rôles. Choisissez-le dans « Nouvelle partie ».`
+    + (hb.length ? ` Rôles maison ajoutés : ${hb.join(", ")}.` : "")
+    + (unknown.length ? ` Ignorés (voyageurs, Légendaires, inconnus) : ${unknown.join(", ")}.` : ""));
 }
 function renderCustom() {
   $("#custom-scripts").innerHTML = app.state.customScripts.map((c) =>
-    `<li><div><b>${esc(c.name)}</b><span class="muted small">${c.roles.length} rôles${c.author ? ` · ${esc(c.author)}` : ""}</span></div>
+    `<li><div><b>${esc(c.name)}</b><span class="muted small">${c.roles.filter((i) => ROLES[i]).length} rôles${c.author ? ` · ${esc(c.author)}` : ""}</span></div>
      <button type="button" class="ghost danger" data-del-script="${c.id}">Supprimer</button></li>`).join("")
     || `<li class="muted">Aucun scénario importé.</li>`;
 }
